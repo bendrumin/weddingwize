@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('wedding_profiles')
         .select('*')
@@ -67,7 +68,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error fetching profile:', error);
+        // Set a default profile if fetch fails
+        setProfile({
+          id: userId,
+          partner1_name: '',
+          partner2_name: '',
+          wedding_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          total_budget: 25000,
+          guest_count: 100,
+          location: { city: '', state: '', zipcode: '' },
+          wedding_style: [],
+          priorities: {
+            venue: 5,
+            photography: 4,
+            catering: 4,
+            flowers: 3,
+            music: 3,
+            planning: 5,
+            attire: 3,
+            transportation: 2,
+            other: 2,
+          },
+          planning_stage: 'just_started',
+          subscription_tier: 'free',
+          subscription_status: 'active',
+          onboarding_completed: false,
+          created_at: new Date(),
+          updated_at: new Date(),
+        } as WeddingProfile);
       } else if (data) {
+        console.log('Profile found:', data);
         setProfile(data);
       } else {
         // Profile doesn't exist, create a default one
@@ -102,12 +132,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (createError) {
           console.error('Error creating default profile:', createError);
+          // Set a default profile even if creation fails
+          setProfile({
+            id: userId,
+            partner1_name: '',
+            partner2_name: '',
+            wedding_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            total_budget: 25000,
+            guest_count: 100,
+            location: { city: '', state: '', zipcode: '' },
+            wedding_style: [],
+            priorities: {
+              venue: 5,
+              photography: 4,
+              catering: 4,
+              flowers: 3,
+              music: 3,
+              planning: 5,
+              attire: 3,
+              transportation: 2,
+              other: 2,
+            },
+            planning_stage: 'just_started',
+            subscription_tier: 'free',
+            subscription_status: 'active',
+            onboarding_completed: false,
+            created_at: new Date(),
+            updated_at: new Date(),
+          } as WeddingProfile);
         } else {
+          console.log('Profile created successfully:', newProfile);
           setProfile(newProfile);
         }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Set a default profile even if there's an error
+      setProfile({
+        id: userId,
+        partner1_name: '',
+        partner2_name: '',
+        wedding_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        total_budget: 25000,
+        guest_count: 100,
+        location: { city: '', state: '', zipcode: '' },
+        wedding_style: [],
+        priorities: {
+          venue: 5,
+          photography: 4,
+          catering: 4,
+          flowers: 3,
+          music: 3,
+          planning: 5,
+          attire: 3,
+          transportation: 2,
+          other: 2,
+        },
+        planning_stage: 'just_started',
+        subscription_tier: 'free',
+        subscription_status: 'active',
+        onboarding_completed: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+      } as WeddingProfile);
     } finally {
       setLoading(false);
     }
