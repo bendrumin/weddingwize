@@ -928,8 +928,8 @@ export class VendorScraper {
               
               if (detailedInfo) {
                 // Merge detailed information
-                if (detailedInfo.detailedDescription) {
-                  (venue as any).description = detailedInfo.detailedDescription;
+                if ((detailedInfo as any).detailedDescription) {
+                  (venue as any).description = (detailedInfo as any).detailedDescription;
                 }
                 if (detailedInfo.amenities && detailedInfo.amenities.length > 0) {
                   (venue as any).amenities = detailedInfo.amenities;
@@ -1119,9 +1119,17 @@ export class VendorScraper {
                 }).filter(venue => venue !== null && venue.name !== 'Unknown Venue');
               });
               
-              // Add debug property to each venue
+              // Add debug property to each venue and ensure all required properties
               const venuesWithDebug = pageVenues.map(venue => ({
                 ...venue,
+                name: venue.name || 'Unknown Venue',
+                location: venue.location || { city: '', state: '', full: '' },
+                rating: venue.rating || 0,
+                reviewCount: venue.reviewCount || 0,
+                url: venue.url || '',
+                imageUrl: venue.imageUrl || '',
+                source: venue.source || 'theknot.com',
+                pricing: venue.pricing || { min: 0, max: 0, currency: 'USD', description: '' },
                 debug: {
                   cardText: '',
                   hasDescription: false,

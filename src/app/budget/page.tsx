@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { WeddingProfile, BudgetAllocation } from '@/types';
+import { WeddingProfile, BudgetAllocation, BudgetFormData } from '@/types';
 import { 
   PieChart, 
   Pie, 
@@ -76,7 +76,7 @@ export default function BudgetOptimizerPage() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIInalysis | null>(null);
-  const [budgetAllocation, setBudgetAllocation] = useState<BudgetAllocation>({
+  const [budgetAllocation, setBudgetAllocation] = useState<BudgetFormData>({
     venue: 0,
     catering: 0,
     photography: 0,
@@ -109,7 +109,7 @@ export default function BudgetOptimizerPage() {
       // Calculate base allocation percentages based on priorities
       const totalPriority = Object.values(priorities).reduce((sum, priority) => sum + priority, 0);
       
-      const allocation: BudgetAllocation = {
+      const allocation: BudgetFormData = {
         venue: Math.round((priorities.venue / totalPriority) * totalBudget),
         catering: Math.round((priorities.catering / totalPriority) * totalBudget),
         photography: Math.round((priorities.photography / totalPriority) * totalBudget),
@@ -154,7 +154,7 @@ export default function BudgetOptimizerPage() {
     }
   };
 
-  const handleAllocationChange = (category: keyof BudgetAllocation, value: number) => {
+  const handleAllocationChange = (category: keyof BudgetFormData, value: number) => {
     setBudgetAllocation(prev => ({
       ...prev,
       [category]: value
@@ -172,9 +172,9 @@ export default function BudgetOptimizerPage() {
   const getChartData = () => {
     return budgetCategories.map(category => ({
       name: category.label,
-      value: budgetAllocation[category.key as keyof BudgetAllocation],
+      value: budgetAllocation[category.key as keyof BudgetFormData],
       color: COLORS[budgetCategories.indexOf(category) % COLORS.length]
-    })).filter(item => item.value > 0);
+    })).filter(item => typeof item.value === 'number' && item.value > 0);
   };
 
   const getComparisonData = () => {
@@ -273,10 +273,10 @@ export default function BudgetOptimizerPage() {
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-gray-900">
-                        ${budgetAllocation[category.key as keyof BudgetAllocation].toLocaleString()}
+                        ${(budgetAllocation[category.key as keyof BudgetFormData] || 0).toLocaleString()}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {Math.round((budgetAllocation[category.key as keyof BudgetAllocation] / profile.total_budget) * 100)}%
+                        {Math.round(((budgetAllocation[category.key as keyof BudgetFormData] || 0) / profile.total_budget) * 100)}%
                       </div>
                     </div>
                   </div>
@@ -285,8 +285,8 @@ export default function BudgetOptimizerPage() {
                     min="0"
                     max={profile.total_budget}
                     step="100"
-                    value={budgetAllocation[category.key as keyof BudgetAllocation]}
-                    onChange={(e) => handleAllocationChange(category.key as keyof BudgetAllocation, parseInt(e.target.value))}
+                    value={budgetAllocation[category.key as keyof BudgetFormData] || 0}
+                    onChange={(e) => handleAllocationChange(category.key as keyof BudgetFormData, parseInt(e.target.value))}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                   />
                 </div>

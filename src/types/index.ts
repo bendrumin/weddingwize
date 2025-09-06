@@ -155,6 +155,18 @@ export interface BudgetAllocation {
   created_at: Date;
 }
 
+export interface BudgetFormData {
+  venue: number;
+  catering: number;
+  photography: number;
+  flowers: number;
+  music: number;
+  attire: number;
+  transportation: number;
+  planning: number;
+  other: number;
+}
+
 export interface VendorMatch {
   id: string;
   user_id: string;
