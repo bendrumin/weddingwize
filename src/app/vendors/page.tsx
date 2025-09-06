@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, 
@@ -86,7 +86,7 @@ export default function VendorsPage() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, setAllVendors] = useState<VendorMatch[]>([]);
+  const [allVendors, setAllVendors] = useState<VendorMatch[]>([]);
   const [vendors, setVendors] = useState<VendorMatch[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('venue');
   const [searchLocation, setSearchLocation] = useState('');
@@ -97,7 +97,6 @@ export default function VendorsPage() {
     featuredOnly: false
   });
   const [selectedVendorForInquiry, setSelectedVendorForInquiry] = useState<Vendor | null>(null);
-  const allVendorsRef = useRef<VendorMatch[]>([]);
 
   const categories = [
     { key: 'venue', label: 'Venues', icon: '🏛️', description: 'Ceremony & reception locations' },
@@ -109,7 +108,8 @@ export default function VendorsPage() {
   ];
 
   // Client-side filtering function
-  const applyFilters = useCallback((vendorsToFilter: VendorMatch[] = allVendorsRef.current) => {
+  const applyFilters = useCallback((vendorsToFilter: VendorMatch[] = allVendors) => {
+    console.log('Applying filters to vendors:', vendorsToFilter.length);
     let filtered = [...vendorsToFilter];
 
     // Location filter
@@ -148,8 +148,9 @@ export default function VendorsPage() {
       filtered = filtered.filter(match => match.vendor.featured);
     }
 
+    console.log('Filtered vendors count:', filtered.length);
     setVendors(filtered);
-  }, [searchLocation, filters]);
+  }, [allVendors, searchLocation, filters]);
 
 
   useEffect(() => {
@@ -172,6 +173,8 @@ export default function VendorsPage() {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('API Response:', data);
+          console.log('Vendors count:', data.vendors?.length || 0);
           const transformedVendors = data.vendors?.map((vendor: Vendor) => ({
             vendor: {
               id: vendor.id,
@@ -202,7 +205,7 @@ export default function VendorsPage() {
           })) || [];
           
           setAllVendors(transformedVendors);
-          allVendorsRef.current = transformedVendors;
+          console.log('Transformed vendors count:', transformedVendors.length);
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
           setError(errorData.error || 'Failed to load vendors');
@@ -220,10 +223,10 @@ export default function VendorsPage() {
 
   // Apply filters when search location or filters change
   useEffect(() => {
-    if (allVendorsRef.current.length > 0) {
+    if (allVendors.length > 0) {
       applyFilters();
     }
-  }, [searchLocation, filters, applyFilters]);
+  }, [searchLocation, filters, allVendors, applyFilters]);
 
   const formatPrice = (min: number, max: number) => {
     if (min === max) return `$${min.toLocaleString()}`;
