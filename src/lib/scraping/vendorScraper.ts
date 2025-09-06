@@ -116,7 +116,7 @@ export class VendorScraper {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const detailedInfo = await this.page!.evaluate(() => {
-        const result: any = {};
+        const result: Record<string, unknown> = {};
         
         // Extract detailed description
         const descriptionSelectors = [
@@ -199,7 +199,7 @@ export class VendorScraper {
         }
         
         // Extract contact information
-        const contactInfo: any = {};
+        const contactInfo: Record<string, unknown> = {};
         
         // Phone number
         const phoneRegex = /\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/;
@@ -245,7 +245,7 @@ export class VendorScraper {
         }
         
         // Extract reviews/testimonials
-        const reviews: any[] = [];
+        const reviews: Record<string, unknown>[] = [];
         const reviewSelectors = [
           '[data-testid="reviews"] .review',
           '.reviews .review',
@@ -928,26 +928,26 @@ export class VendorScraper {
               
               if (detailedInfo) {
                 // Merge detailed information
-                if ((detailedInfo as any).detailedDescription) {
-                  (venue as any).description = (detailedInfo as any).detailedDescription;
+                if ((detailedInfo as Record<string, unknown>).detailedDescription) {
+                  (venue as Record<string, unknown>).description = (detailedInfo as Record<string, unknown>).detailedDescription;
                 }
                 if (detailedInfo.amenities && detailedInfo.amenities.length > 0) {
-                  (venue as any).amenities = detailedInfo.amenities;
+                  (venue as Record<string, unknown>).amenities = detailedInfo.amenities;
                 }
                 if (detailedInfo.portfolioImages && detailedInfo.portfolioImages.length > 0) {
-                  (venue as any).portfolioImages = detailedInfo.portfolioImages;
+                  (venue as Record<string, unknown>).portfolioImages = detailedInfo.portfolioImages;
                 }
                 if (detailedInfo.contact) {
-                  (venue as any).contact = { ...(venue as any).contact, ...detailedInfo.contact };
+                  (venue as Record<string, unknown>).contact = { ...(venue as Record<string, unknown>).contact, ...detailedInfo.contact };
                 }
                 if (detailedInfo.pricingDetails) {
-                  (venue as any).pricingDetails = detailedInfo.pricingDetails;
+                  (venue as Record<string, unknown>).pricingDetails = detailedInfo.pricingDetails;
                 }
                 if (detailedInfo.capacityDetails) {
-                  (venue as any).capacityDetails = detailedInfo.capacityDetails;
+                  (venue as Record<string, unknown>).capacityDetails = detailedInfo.capacityDetails;
                 }
                 if (detailedInfo.reviews && detailedInfo.reviews.length > 0) {
-                  (venue as any).reviews = detailedInfo.reviews;
+                  (venue as Record<string, unknown>).reviews = detailedInfo.reviews;
                 }
                 
                 console.log(`✅ Enhanced ${venue?.name || 'Unknown'} with detailed info`);

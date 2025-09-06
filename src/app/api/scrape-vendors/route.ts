@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Store vendors in database (using insert for now to avoid constraint issues)
-      const vendorData = vendors.map((vendor: any) => ({
+        const vendorData = vendors.map((vendor: Record<string, unknown>) => ({
         name: vendor.name,
         category: vendor.category,
         business_type: vendor.businessType,

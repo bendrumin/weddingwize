@@ -154,7 +154,7 @@ export class VendorMatcher {
     if (vendor.featured) {
       reasons.push('Featured vendor');
     }
-    if (vendor.specialties.some(s => profile.wedding_style?.includes(s as any))) {
+    if (vendor.specialties.some(s => profile.wedding_style?.includes(s as string))) {
       reasons.push('Matches your wedding style');
     }
 

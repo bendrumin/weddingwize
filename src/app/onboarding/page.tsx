@@ -176,7 +176,7 @@ export default function OnboardingPage() {
               Welcome to WeddingWise AI! 🎉
             </h1>
             <p className="text-gray-600">
-              Let's get to know you and your wedding vision
+              Let&apos;s get to know you and your wedding vision
             </p>
           </div>
 
@@ -276,7 +276,7 @@ export default function OnboardingPage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                Where's your wedding?
+                Where&apos;s your wedding?
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -326,7 +326,7 @@ export default function OnboardingPage() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                What's your wedding style?
+                What&apos;s your wedding style?
               </h2>
               
               <div>

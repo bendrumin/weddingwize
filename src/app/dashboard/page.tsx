@@ -85,7 +85,7 @@ export default function DashboardPage() {
               : 'Couple'}!
           </h1>
           <p className="text-gray-600">
-            Let's continue planning your perfect wedding day
+            Let&apos;s continue planning your perfect wedding day
           </p>
         </div>
 

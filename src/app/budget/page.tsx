@@ -456,7 +456,7 @@ export default function BudgetOptimizerPage() {
                 <Calculator className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Ready for AI Analysis</h3>
                 <p className="text-gray-600 mb-4">
-                  Click "Get AI Analysis" to receive personalized budget recommendations
+                  Click &quot;Get AI Analysis&quot; to receive personalized budget recommendations
                 </p>
                 <div className="text-sm text-gray-500">
                   Our AI will analyze your priorities, location, and budget to suggest optimal allocations

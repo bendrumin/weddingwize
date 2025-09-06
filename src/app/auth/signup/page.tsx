@@ -198,7 +198,7 @@ export default function SignUpPage() {
             {/* Partner 1 Name */}
             <div>
               <label htmlFor="partner1Name" className="block text-sm font-medium text-gray-700 mb-2">
-                Partner 1's Name
+                Partner 1&apos;s Name
               </label>
               <input
                 type="text"
@@ -208,14 +208,14 @@ export default function SignUpPage() {
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                placeholder="Enter first partner's name"
+                placeholder="Enter first partner&apos;s name"
               />
             </div>
 
             {/* Partner 2 Name */}
             <div>
               <label htmlFor="partner2Name" className="block text-sm font-medium text-gray-700 mb-2">
-                Partner 2's Name
+                Partner 2&apos;s Name
               </label>
               <input
                 type="text"
@@ -225,7 +225,7 @@ export default function SignUpPage() {
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                placeholder="Enter second partner's name"
+                placeholder="Enter second partner&apos;s name"
               />
             </div>
 

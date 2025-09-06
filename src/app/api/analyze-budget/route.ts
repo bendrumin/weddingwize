@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateMarketRecommendations(totalBudget: number, marketData: any, currentAllocation: BudgetAllocation) {
+function calculateMarketRecommendations(totalBudget: number, marketData: Record<string, unknown>, currentAllocation: BudgetAllocation) {
   const recommendations = [];
   
   for (const [category, marketPercentage] of Object.entries(marketData)) {
@@ -73,7 +73,7 @@ function calculateMarketRecommendations(totalBudget: number, marketData: any, cu
   return recommendations.sort((a, b) => b.savings - a.savings);
 }
 
-function calculateTotalSavings(recommendations: any[]): number {
+function calculateTotalSavings(recommendations: Record<string, unknown>[]): number {
   return recommendations.reduce((total, rec) => total + rec.savings, 0);
 }
 
@@ -109,7 +109,7 @@ function generateCategoryReasoning(category: string, savings: number, marketPerc
   return reasons[Math.floor(Math.random() * reasons.length)];
 }
 
-function generateSmartInsights(profile: WeddingProfile, budgetAllocation: BudgetAllocation, marketData: any): string[] {
+function generateSmartInsights(profile: WeddingProfile, budgetAllocation: BudgetAllocation, marketData: Record<string, unknown>): string[] {
   const insights = [];
   const totalBudget = profile.total_budget;
   
@@ -135,13 +135,15 @@ function generateSmartInsights(profile: WeddingProfile, budgetAllocation: Budget
   
   // Priority insights
   const priorities = profile.priorities;
-  const topPriority = Object.entries(priorities).reduce((a, b) => (priorities as any)[a[0]] > (priorities as any)[b[0]] ? a : b);
+  const topPriority = Object.entries(priorities).reduce(
+    (a, b) => a[1] > b[1] ? a : b
+  );
   insights.push(`⭐ Your top priority is ${topPriority[0]} - allocate accordingly for maximum satisfaction`);
-  
+
   return insights;
 }
 
-function generateMarketComparison(profile: WeddingProfile, budgetAllocation: BudgetAllocation, marketData: any): any {
+function generateMarketComparison(profile: WeddingProfile, budgetAllocation: BudgetAllocation, marketData: Record<string, unknown>): Record<string, unknown> {
   const totalBudget = profile.total_budget;
   const location = profile.location?.city || 'default';
   
@@ -160,7 +162,7 @@ function generateMarketComparison(profile: WeddingProfile, budgetAllocation: Bud
   };
 }
 
-function generateVendorMatches(profile: WeddingProfile): any {
+function generateVendorMatches(profile: WeddingProfile): Record<string, unknown> {
   return {
     available: Math.floor(Math.random() * 50) + 20,
     averageRating: 4.2 + Math.random() * 0.6,
@@ -171,7 +173,7 @@ function generateVendorMatches(profile: WeddingProfile): any {
   };
 }
 
-function generateTimelineOptimization(profile: WeddingProfile): any {
+function generateTimelineOptimization(profile: WeddingProfile): Record<string, unknown> {
   const monthsUntilWedding = Math.ceil((new Date(profile.wedding_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30));
   
   return {
@@ -181,7 +183,7 @@ function generateTimelineOptimization(profile: WeddingProfile): any {
   };
 }
 
-function generateGuestOptimization(profile: WeddingProfile): any {
+function generateGuestOptimization(profile: WeddingProfile): Record<string, unknown> {
   return {
     rsvpRate: 0.75 + Math.random() * 0.2,
     estimatedNoShows: Math.floor(profile.guest_count * 0.1),

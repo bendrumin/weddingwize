@@ -34,9 +34,9 @@ export type Database = {
           wedding_date: string;
           total_budget: number;
           guest_count: number;
-          location: any;
+          location: Record<string, unknown>;
           wedding_style: string[];
-          priorities: any;
+          priorities: Record<string, unknown>;
           planning_stage: string;
           subscription_tier: string;
           subscription_status: string;
@@ -51,7 +51,7 @@ export type Database = {
           wedding_date: string;
           total_budget: number;
           guest_count: number;
-          location: any;
+          location: Record<string, unknown>;
           wedding_style?: string[];
           priorities?: any;
           planning_stage?: string;
@@ -85,7 +85,7 @@ export type Database = {
           name: string;
           category: string;
           business_type: string | null;
-          location: any;
+          location: Record<string, unknown>;
           pricing: any;
           contact: any;
           portfolio_images: string[];
@@ -106,7 +106,7 @@ export type Database = {
           name: string;
           category: string;
           business_type?: string | null;
-          location: any;
+          location: Record<string, unknown>;
           pricing: any;
           contact: any;
           portfolio_images?: string[];

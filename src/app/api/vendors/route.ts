@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // Build query
-    let query = supabase
+    const query = supabase
       .from('vendors')
       .select('*')
       .eq('category', category)
