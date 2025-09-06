@@ -9,6 +9,7 @@
     "lint": "eslint",
     "setup": "node scripts/setup.js",
     "setup-db": "node scripts/setup-database.js",
+    "update-gender-neutral": "node scripts/update-gender-neutral.js",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
