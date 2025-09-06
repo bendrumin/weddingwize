@@ -742,6 +742,8 @@ export class VendorScraper {
             const linkElement = card.querySelector('a[href*="/marketplace/"]');
             const relativeUrl = linkElement?.getAttribute('href') || '';
             const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
+            
+            // Debug URL extraction (moved outside page.evaluate)
 
             // Extract image
             const imageElement = card.querySelector('img');
@@ -799,6 +801,49 @@ export class VendorScraper {
                 break;
               }
             }
+
+            // Extract amenities and features from the card
+            const amenities = [];
+            const amenitySelectors = [
+              '.amenity',
+              '.feature',
+              '.tag',
+              '[class*="amenity"]',
+              '[class*="feature"]',
+              '[class*="tag"]'
+            ];
+            
+            for (const selector of amenitySelectors) {
+              const elements = card.querySelectorAll(selector);
+              elements.forEach(el => {
+                const text = el.textContent?.trim();
+                if (text && text.length > 0 && text.length < 50) {
+                  amenities.push(text);
+                }
+              });
+            }
+
+            // Extract venue type from badges or tags
+            let extractedVenueType = venueType;
+            const badgeSelectors = [
+              '.badge',
+              '.tag',
+              '.label',
+              '[class*="badge"]',
+              '[class*="tag"]',
+              '[class*="label"]'
+            ];
+            
+            for (const selector of badgeSelectors) {
+              const elements = card.querySelectorAll(selector);
+              elements.forEach(el => {
+                const text = el.textContent?.trim().toLowerCase();
+                if (text && (text.includes('hotel') || text.includes('garden') || text.includes('historic') || 
+                           text.includes('outdoor') || text.includes('indoor') || text.includes('ballroom'))) {
+                  extractedVenueType = text;
+                }
+              });
+            }
       
             const result = {
               name,
@@ -824,8 +869,8 @@ export class VendorScraper {
                 max: capacityMax,
                 description: capacity
               },
-              venueType,
-              amenities: [], // Could be enhanced with more scraping
+              venueType: extractedVenueType,
+              amenities: amenities.length > 0 ? amenities : ['Wedding Reception', 'Ceremony', 'Corporate Events'],
               specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events'],
               // Debug info
               debug: {
@@ -1084,6 +1129,12 @@ export class VendorScraper {
           }
         }
       }
+
+      // Debug URLs for first few venues
+      console.log('🔗 Sample URLs extracted:');
+      venues.slice(0, 3).forEach((venue, index) => {
+        console.log(`  ${index + 1}. ${venue.name}: ${venue.url}`);
+      });
 
       return venues;
 

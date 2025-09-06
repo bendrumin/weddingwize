@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -156,13 +156,7 @@ export default function VendorProfilePage() {
   const [isFavorited, setIsFavorited] = useState(false);
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      loadVendor();
-    }
-  }, [id, loadVendor]);
-
-  const loadVendor = async () => {
+  const loadVendor = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -183,7 +177,13 @@ export default function VendorProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadVendor();
+    }
+  }, [id, loadVendor]);
 
   const formatPrice = (min: number, max: number) => {
     if (min === max) return `$${min.toLocaleString()}`;

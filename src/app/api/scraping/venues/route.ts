@@ -114,72 +114,9 @@ export async function POST(request: NextRequest) {
         venues = venues.slice(0, maxVenues);
       }
 
-      // Scrape comprehensive profile information for each venue
-      if (venues.length > 0 && scraper) {
-        console.log(`🔍 Scraping comprehensive profiles for ${venues.length} venues...`);
-        let successCount = 0;
-        let errorCount = 0;
-        
-        // Process venues in batches to avoid overwhelming the server
-        const batchSize = 10;
-        const totalBatches = Math.ceil(venues.length / batchSize);
-        
-        for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-          const startIndex = batchIndex * batchSize;
-          const endIndex = Math.min(startIndex + batchSize, venues.length);
-          const batch = venues.slice(startIndex, endIndex);
-          
-          console.log(`📦 Processing batch ${batchIndex + 1}/${totalBatches} (venues ${startIndex + 1}-${endIndex})`);
-          
-          for (let i = 0; i < batch.length; i++) {
-            const venue = batch[i];
-            const globalIndex = startIndex + i;
-            
-            if (venue.url) {
-              console.log(`📋 [${globalIndex + 1}/${venues.length}] Scraping comprehensive profile for: ${venue.name}`);
-              try {
-                const profileData = await scraper.scrapeVenueProfile(venue.url);
-                if (profileData) {
-                  // Map comprehensive profile data to venue object
-                  venue.profileData = profileData;
-                  venue.detailedDescription = profileData.basic.description;
-                  venue.amenities = Object.entries(profileData.amenities)
-                    .filter(([, value]) => value)
-                    .map(([key]) => key.replace(/([A-Z])/g, ' $1').toLowerCase());
-                  venue.specialties = profileData.services.ceremonyTypes;
-                  venue.pricingDetails = profileData.pricing.details;
-                  venue.capacityDetails = profileData.capacity.capacityDescription;
-                  venue.contactPhone = profileData.contact.teamName; // Will be extracted from contact info
-                  venue.contactEmail = ''; // Will be extracted from contact info
-                  venue.contactWebsite = venue.url;
-                  venue.reviews = profileData.individualReviews.slice(0, 3);
-                  successCount++;
-                  console.log(`✅ [${globalIndex + 1}/${venues.length}] Enhanced profile data for ${venue.name} (Success: ${successCount}, Errors: ${errorCount})`);
-                } else {
-                  errorCount++;
-                  console.log(`⚠️ [${globalIndex + 1}/${venues.length}] No profile data extracted for ${venue.name}`);
-                }
-              } catch (profileError) {
-                errorCount++;
-                console.error(`❌ [${globalIndex + 1}/${venues.length}] Error scraping profile for ${venue.name}:`, profileError);
-              }
-              
-              // Add a small delay to be respectful to the server
-              if (i < batch.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay between requests
-              }
-            }
-          }
-          
-          // Longer delay between batches
-          if (batchIndex < totalBatches - 1) {
-            console.log(`⏳ Waiting 2 seconds before next batch...`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-          }
-        }
-        
-        console.log(`🎯 Profile scraping completed: ${successCount} successful, ${errorCount} errors out of ${venues.length} venues`);
-      }
+      // Note: Individual profile scraping is now handled by a separate dedicated scraper
+      // This focuses on getting comprehensive data from the main listing page
+      console.log(`📊 Main listing page scraping completed for ${venues.length} venues`);
 
       // Save venues to database
       if (venues.length > 0) {
@@ -293,17 +230,41 @@ export async function POST(request: NextRequest) {
             };
           });
 
+          // Check for existing venues to provide better duplicate handling
+          const existingVenues = await supabase
+            .from('vendors')
+            .select('name, category, last_scraped')
+            .eq('category', 'venue');
+
+          const existingNames = new Set(
+            existingVenues.data?.map(v => v.name.toLowerCase()) || []
+          );
+
+          const newVenues = venuesToSave.filter(v => !existingNames.has(v.name.toLowerCase()));
+          const updatedVenues = venuesToSave.filter(v => existingNames.has(v.name.toLowerCase()));
+
+          console.log(`📊 Database update summary:`);
+          console.log(`  - New venues: ${newVenues.length}`);
+          console.log(`  - Updated venues: ${updatedVenues.length}`);
+          console.log(`  - Total venues: ${venuesToSave.length}`);
+
           const { error: insertError } = await supabase
             .from('vendors')
             .upsert(venuesToSave, { 
               onConflict: 'name,category',
-              ignoreDuplicates: true 
+              ignoreDuplicates: false // Allow updates to refresh data
             });
 
           if (insertError) {
             console.error('❌ Error saving venues to database:', insertError);
           } else {
             console.log(`✅ Successfully saved ${venues.length} venues to database`);
+            if (newVenues.length > 0) {
+              console.log(`🆕 Added ${newVenues.length} new venues`);
+            }
+            if (updatedVenues.length > 0) {
+              console.log(`🔄 Updated ${updatedVenues.length} existing venues`);
+            }
           }
         } catch (dbError) {
           console.error('❌ Database error:', dbError);
