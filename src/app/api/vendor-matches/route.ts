@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert budget allocations to BudgetAllocation format
-    const budgetAllocation: BudgetAllocation = {
+    // Convert budget allocations to simple object format
+    const budgetAllocation: Record<string, number> = {
       venue: 0,
       catering: 0,
       photography: 0,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     budgetData?.forEach(item => {
       if (item.category in budgetAllocation) {
-        budgetAllocation[item.category as keyof BudgetAllocation] = item.allocated_amount;
+        budgetAllocation[item.category] = item.allocated_amount;
       }
     });
 

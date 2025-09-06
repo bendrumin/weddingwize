@@ -18,11 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const scraper = new VendorScraper({
-      respectRateLimit: true,
-      maxConcurrency: 2,
-      retryFailedRequests: 2
-    });
+    const scraper = new VendorScraper();
 
     await scraper.initialize();
 
@@ -31,14 +27,12 @@ export async function POST(request: NextRequest) {
     try {
       if (category === 'venue') {
         vendors = await scraper.scrapeVenues(location, maxPages);
-      } else if (category === 'photography') {
-        vendors = await scraper.scrapePhotographers(location, maxPages);
       } else {
-        throw new Error(`Unsupported category: ${category}`);
+        throw new Error(`Unsupported category: ${category}. Only 'venue' is currently supported.`);
       }
 
       // Store vendors in database (using insert for now to avoid constraint issues)
-      const vendorData = vendors.map(vendor => ({
+      const vendorData = vendors.map((vendor: any) => ({
         name: vendor.name,
         category: vendor.category,
         business_type: vendor.businessType,

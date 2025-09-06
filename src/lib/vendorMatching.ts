@@ -97,7 +97,7 @@ export class VendorMatcher {
     let compatibilityScore = 0;
 
     // Price fit calculation
-    const budgetForCategory = budgetAllocation[vendor.category as keyof BudgetAllocation] || 0;
+    const budgetForCategory = (budgetAllocation[vendor.category as keyof BudgetAllocation] as number) || 0;
     const priceFit = this.calculatePriceFit(vendor.pricing, budgetForCategory);
     
     // Quality score (rating + review count)
@@ -154,7 +154,7 @@ export class VendorMatcher {
     if (vendor.featured) {
       reasons.push('Featured vendor');
     }
-    if (vendor.specialties.some(s => profile.wedding_style?.includes(s))) {
+    if (vendor.specialties.some(s => profile.wedding_style?.includes(s as any))) {
       reasons.push('Matches your wedding style');
     }
 

@@ -1122,14 +1122,15 @@ export class VendorScraper {
               // Add debug property to each venue and ensure all required properties
               const venuesWithDebug = pageVenues.map(venue => ({
                 ...venue,
-                name: venue.name || 'Unknown Venue',
-                location: venue.location || { city: '', state: '', full: '' },
-                rating: venue.rating || 0,
-                reviewCount: venue.reviewCount || 0,
-                url: venue.url || '',
-                imageUrl: venue.imageUrl || '',
-                source: venue.source || 'theknot.com',
-                pricing: venue.pricing || { min: 0, max: 0, currency: 'USD', description: '' },
+                name: venue?.name || 'Unknown Venue',
+                location: venue?.location || { city: '', state: '', full: '' },
+                rating: venue?.rating || 0,
+                reviewCount: venue?.reviewCount || 0,
+                url: venue?.url || '',
+                imageUrl: venue?.imageUrl || '',
+                source: venue?.source || 'theknot.com',
+                pricing: venue?.pricing || { min: 0, max: 0, currency: 'USD', description: '' },
+                description: venue?.description || '',
                 debug: {
                   cardText: '',
                   hasDescription: false,

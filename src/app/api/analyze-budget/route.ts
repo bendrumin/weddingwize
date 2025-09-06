@@ -53,7 +53,7 @@ function calculateMarketRecommendations(totalBudget: number, marketData: any, cu
   for (const [category, marketPercentage] of Object.entries(marketData)) {
     if (category === 'other') continue;
     
-    const currentAmount = currentAllocation[category as keyof BudgetAllocation] || 0;
+    const currentAmount = (currentAllocation[category as keyof BudgetAllocation] as number) || 0;
     const marketAmount = Math.round(totalBudget * (marketPercentage as number));
     const savings = Math.max(0, currentAmount - marketAmount);
     
@@ -63,7 +63,7 @@ function calculateMarketRecommendations(totalBudget: number, marketData: any, cu
         currentAllocation: currentAmount,
         recommendedAllocation: marketAmount,
         savings,
-        reasoning: generateCategoryReasoning(category, savings, marketPercentage),
+        reasoning: generateCategoryReasoning(category, savings, marketPercentage as number),
         priority: savings > totalBudget * 0.05 ? 'high' : savings > totalBudget * 0.02 ? 'medium' : 'low',
         marketPercentage: Math.round((marketPercentage as number) * 100)
       });
@@ -135,7 +135,7 @@ function generateSmartInsights(profile: WeddingProfile, budgetAllocation: Budget
   
   // Priority insights
   const priorities = profile.priorities;
-  const topPriority = Object.entries(priorities).reduce((a, b) => priorities[a[0]] > priorities[b[0]] ? a : b);
+  const topPriority = Object.entries(priorities).reduce((a, b) => (priorities as any)[a[0]] > (priorities as any)[b[0]] ? a : b);
   insights.push(`⭐ Your top priority is ${topPriority[0]} - allocate accordingly for maximum satisfaction`);
   
   return insights;
