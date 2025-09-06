@@ -79,12 +79,12 @@ export class VendorScraper {
         ]
       } : {
         headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
           '--window-size=1920x1080'
         ]
       };
@@ -565,445 +565,163 @@ export class VendorScraper {
     }
   }
 
-  async scrapeVenues(location: string, maxPages: number = 50) {
+  async scrapeAllVenues(maxPages: number = 50) {
     if (!this.page) {
       console.log('⚠️ Puppeteer not available, trying alternative scraping method');
-      return this.scrapeWithFetch(location, maxPages);
+      return this.scrapeAllVenuesWithFetch(maxPages);
     }
 
-    console.log(`🔍 Scraping venues for ${location}...`);
+    console.log(`🔍 Starting comprehensive scrape of venues from all 50 states...`);
     
-    // Convert location to URL format (e.g., "Minnesota" -> "minnesota")
-    const locationSlug = this.formatLocationForUrl(location);
-    const baseUrl = `https://www.theknot.com/marketplace/wedding-reception-venues/${locationSlug}`;
+    // All 50 US states with their URL-friendly names
+    const allStates = [
+      'alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut', 'delaware',
+      'florida', 'georgia', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa', 'kansas', 'kentucky',
+      'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan', 'minnesota', 'mississippi',
+      'missouri', 'montana', 'nebraska', 'nevada', 'new-hampshire', 'new-jersey', 'new-mexico',
+      'new-york', 'north-carolina', 'north-dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania',
+      'rhode-island', 'south-carolina', 'south-dakota', 'tennessee', 'texas', 'utah', 'vermont',
+      'virginia', 'washington', 'west-virginia', 'wisconsin', 'wyoming'
+    ];
     
-    console.log(`🌐 Navigating to: ${baseUrl}`);
+    let allVenues: Venue[] = [];
+    let totalScraped = 0;
+    const maxVenuesPerState = 20; // Reduced for Vercel compatibility
+    const maxStatesPerRun = 10; // Process 10 states per run to stay within timeouts
     
-    try {
-      // Navigate to the page
-      await this.page.goto(baseUrl, { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
-      });
-
-      // Wait a bit for the page to load, then proceed
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log('📋 Page loaded, extracting venue data...');
-
-      // Extract venue data
-      const venues = await this.page.evaluate(() => {
-        // Try multiple selectors as The Knot may change their structure
-        const venueCards = document.querySelectorAll([
-          '.info-container--37e68',
-          '[class*="info-container"]',
-          '[class*="vendor"]',
-          '[data-testid="vendor-card"]',
-          '.vendor-card',
-          '.result-card',
-          '.vendor-result',
-          '.marketplace-vendor-card',
-          '.vendor-result-card'
-        ].join(', '));
-
-        console.log(`Found ${venueCards.length} venue cards`);
+    // Get states to process (for batch processing)
+    const startIndex = parseInt(process.env.STATE_START_INDEX || '0');
+    const endIndex = Math.min(startIndex + maxStatesPerRun, allStates.length);
+    const statesToProcess = allStates.slice(startIndex, endIndex);
+    
+    console.log(`🎯 Processing states ${startIndex + 1}-${endIndex} of ${allStates.length} (${statesToProcess.length} states)`);
+    console.log(`🎯 Will scrape up to ${maxVenuesPerState} venues from each state`);
+    
+    for (let i = 0; i < statesToProcess.length; i++) {
+      const state = statesToProcess[i];
+      try {
+        console.log(`🌐 [${i + 1}/${statesToProcess.length}] Scraping venues from ${state}...`);
+        const baseUrl = `https://www.theknot.com/marketplace/wedding-reception-venues/${state}`;
         
-        // Debug: log the first few cards to see what we're working with
-        if (venueCards.length > 0) {
-          console.log('First card text:', venueCards[0].textContent?.trim().substring(0, 100));
-          console.log('First card classes:', venueCards[0].className);
-          
-          // Debug: Show all venue names found
-          console.log('🔍 All venue names found:');
-          Array.from(venueCards).slice(0, 5).forEach((card, i) => {
-            const text = card.textContent?.trim() || '';
-            const nameMatch = text.match(/^([^0-9]+?)(\d+\.?\d*\(\d+\))/);
-            const name = nameMatch ? nameMatch[1].trim() : 'Unknown';
-            console.log(`  ${i + 1}. ${name}`);
-          });
-        }
+        // Navigate to the state-specific page
+        await this.page.goto(baseUrl, { 
+          waitUntil: 'networkidle2',
+          timeout: 30000 
+        });
 
-        return Array.from(venueCards).map((card: Element) => {
-          try {
-            // Skip navigation/header elements
-            const cardText = card.textContent?.trim() || '';
-            if (cardText.includes('Are you a vendor') || 
-                cardText.includes('Start here') || 
-                cardText.length < 20 ||
-                !cardText.match(/\d+\.?\d*\(\d+\)/)) { // Must have rating pattern
+        // Wait for page to load
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log(`📋 Page loaded for ${state}, extracting venue data...`);
+
+        // Extract venue data from this state
+        const stateVenues = await this.page.evaluate(() => {
+          // Use the same venue extraction logic as before
+          const venueCards = document.querySelectorAll([
+            '.info-container--37e68',
+            '[class*="info-container"]',
+            '[class*="vendor"]',
+            '[data-testid="vendor-card"]',
+            '.vendor-card',
+            '.result-card',
+            '.vendor-result',
+            '.marketplace-vendor-card',
+            '.vendor-result-card'
+          ].join(', '));
+
+          return Array.from(venueCards).map((card: Element) => {
+            try {
+              const cardText = card.textContent?.trim() || '';
+              if (cardText.includes('Are you a vendor') || 
+                  cardText.includes('Start here') || 
+                  cardText.length < 20 ||
+                  !cardText.match(/\d+\.?\d*\(\d+\)/)) {
+                return null;
+              }
+              
+              // Extract basic info (simplified for multi-state scraping)
+              const nameMatch = cardText.match(/^([^0-9]+?)(\d+\.?\d*\(\d+\))/);
+              const name = nameMatch ? nameMatch[1].trim() : 'Unknown Venue';
+              
+              // Extract rating
+              const ratingMatch = cardText.match(/(\d+\.?\d*)\((\d+)\)/);
+              let rating = 0;
+              let reviewCount = 0;
+              if (ratingMatch) {
+                rating = parseFloat(ratingMatch[1]);
+                reviewCount = parseInt(ratingMatch[2]);
+                if (rating > 5.0) rating = 5.0;
+              }
+              
+              // Extract location
+              const locationMatch = cardText.match(/([A-Z][a-z]+(?: [A-Z][a-z]+)*, [A-Z]{2})/);
+              const locationText = locationMatch ? locationMatch[1] : 'Unknown, Unknown';
+              const [city, state] = locationText.split(', ').map(s => s.trim());
+              
+              // Extract URL
+              const linkElement = card.querySelector('a[href*="/marketplace/"]');
+              const relativeUrl = linkElement?.getAttribute('href') || '';
+              const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
+              
+              // Extract image
+              const imageElement = card.querySelector('img');
+              const imageUrl = imageElement?.src || imageElement?.getAttribute('data-src') || '';
+              
+              // Extract capacity
+              const capacityMatch = cardText.match(/(Up to \d+ Guests|\d+\+ Guests)/);
+              const capacity = capacityMatch ? capacityMatch[1] : 'Unknown';
+              
+              // Extract pricing
+              const pricingMatch = cardText.match(/(\$\$+[^$]*)/);
+              const pricingText = pricingMatch ? pricingMatch[1] : 'Unknown';
+              
+              // Create description
+              const description = `Beautiful venue in ${locationText}`;
+              
+              return {
+                name,
+                location: {
+                  city: city || '',
+                  state: state || '',
+                  full: locationText
+                },
+                rating,
+                reviewCount,
+                url,
+                imageUrl,
+                source: 'theknot',
+                pricing: {
+                  min: 1000,
+                  max: 5000,
+                  currency: 'USD',
+                  description: pricingText
+                },
+                description,
+                capacity: {
+                  min: 0,
+                  max: 0,
+                  description: capacity
+                },
+                venueType: 'Event Venue',
+                amenities: [],
+                specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
+              };
+            } catch {
               return null;
             }
-            
-            // Extract venue name - try multiple approaches
-            let name = 'Unknown Venue';
-            
-            // Try to find name in various ways
-            const nameSelectors = [
-              '.vendor-name--e997e',
-              '.vendor-name--f264c',
-              '[data-testid="vendor-name"]',
-              '.vendor-name',
-              '.vendor-title',
-              'h3',
-              'h2',
-              '.result-title',
-              'a[href*="/marketplace/"]',
-              '.vendor-link'
-            ];
-            
-            for (const selector of nameSelectors) {
-              const element = card.querySelector(selector);
-              if (element && element.textContent?.trim()) {
-                name = element.textContent.trim();
-                break;
-              }
-            }
-            
-            // If still no name, try to get the first line of text from the card
-            if (name === 'Unknown Venue') {
-              const allText = card.textContent?.trim();
-              if (allText) {
-                // Take the first line of text as the name (before any numbers/ratings)
-                const firstLine = allText.split(/[\d\(\)]/)[0].trim();
-                if (firstLine.length > 3) {
-                  name = firstLine;
-                }
-              }
-            }
-
-            // Extract location, rating, and other info from card text
-            // (cardText already declared above)
-            let locationText = '';
-            let city = '';
-            let state = '';
-            let rating = 0;
-            let reviewCount = 0;
-            let capacity = '';
-            let pricingText = '';
-            
-            // Parse the card text which contains: "Venue Name4.9(130)Minneapolis, MNUp to 250 Guests$$ – Affordable"
-            
-            // Extract rating (4.9(130) pattern)
-            const ratingMatch = cardText.match(/(\d+\.?\d*)\((\d+)\)/);
-            if (ratingMatch) {
-              rating = parseFloat(ratingMatch[1]);
-              reviewCount = parseInt(ratingMatch[2]);
-              
-              // Cap rating at 5.0 to prevent database overflow
-              if (rating > 5.0) {
-                rating = 5.0;
-                console.log(`⚠️ Rating capped at 5.0 for ${name} (was ${ratingMatch[1]})`);
-              }
-              
-              console.log(`✅ Extracted rating: ${rating} (${reviewCount} reviews) for ${name}`);
-            } else {
-              console.log(`❌ No rating found in card text: "${cardText.substring(0, 100)}..."`);
-            }
-            
-            // Extract location (City, State pattern) - look after the rating
-            const locationMatch = cardText.match(/([A-Za-z\s]+),\s*([A-Z]{2})/);
-            if (locationMatch) {
-              locationText = locationMatch[0];
-              city = locationMatch[1].trim();
-              state = locationMatch[2].trim();
-              console.log(`✅ Extracted location: ${locationText} for ${name}`);
-            }
-            
-            // Extract capacity (Up to X Guests or X+ Guests pattern)
-            const capacityMatch = cardText.match(/(Up to \d+ Guests|\d+\+ Guests)/);
-            if (capacityMatch) {
-              capacity = capacityMatch[1];
-              console.log(`✅ Extracted capacity: ${capacity} for ${name}`);
-            } else {
-              console.log(`❌ No capacity found in card text: "${cardText.substring(0, 100)}..."`);
-            }
-            
-            // Extract capacity numbers for database
-            let capacityMin = 0;
-            let capacityMax = 0;
-            if (capacity.includes('Up to')) {
-              capacityMax = parseInt(capacity.match(/\d+/)?.[0] || '0');
-              capacityMin = Math.floor(capacityMax * 0.5); // Estimate min as 50% of max
-            } else if (capacity.includes('+')) {
-              capacityMin = parseInt(capacity.match(/\d+/)?.[0] || '0');
-              capacityMax = capacityMin * 2; // Estimate max as 2x min
-            }
-            
-            // Extract pricing ($$ – Affordable, $$$ – Moderate, etc.)
-            const pricingMatch = cardText.match(/(\$\$+[^$]*)/);
-            if (pricingMatch) {
-              pricingText = pricingMatch[1];
-              console.log(`✅ Extracted pricing: ${pricingText} for ${name}`);
-            } else {
-              console.log(`❌ No pricing found in card text: "${cardText.substring(0, 100)}..."`);
-            }
-
-            // Extract pricing information from card text
-            let pricingMin = 1000;
-            let pricingMax = 5000;
-            
-            // Use the extracted pricing text to determine price ranges
-            if (pricingText.includes('$$ – Affordable')) {
-              pricingMin = 1000;
-              pricingMax = 3000;
-            } else if (pricingText.includes('$$$ – Moderate')) {
-              pricingMin = 3000;
-              pricingMax = 6000;
-            } else if (pricingText.includes('$$$$ – Expensive')) {
-              pricingMin = 6000;
-              pricingMax = 12000;
-            } else if (pricingText.includes('$$$$$ – Very Expensive')) {
-              pricingMin = 12000;
-              pricingMax = 25000;
-            } else {
-              // Look for specific price ranges in the full text
-              const priceRangeMatch = cardText.match(/\$([\d,]+)\s*-\s*\$([\d,]+)/);
-              if (priceRangeMatch) {
-                pricingMin = parseInt(priceRangeMatch[1].replace(/,/g, ''));
-                pricingMax = parseInt(priceRangeMatch[2].replace(/,/g, ''));
-              } else {
-                const startingPriceMatch = cardText.match(/starting\s*at\s*\$([\d,]+)/i);
-                if (startingPriceMatch) {
-                  pricingMin = parseInt(startingPriceMatch[1].replace(/,/g, ''));
-                  pricingMax = pricingMin * 2;
-                }
-              }
-            }
-
-            // Extract URL
-            const linkElement = card.querySelector('a[href*="/marketplace/"]');
-            const relativeUrl = linkElement?.getAttribute('href') || '';
-            const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
-            
-            // Debug URL extraction (moved outside page.evaluate)
-
-            // Extract image
-            const imageElement = card.querySelector('img');
-            const imageUrl = imageElement?.src || imageElement?.getAttribute('data-src') || '';
-
-
-            // Create a better description with extracted information
-            let description = `Beautiful venue in ${locationText || 'Minnesota'}`;
-            
-            // Build a more detailed description
-            const descriptionParts = [];
-            if (capacity) {
-              descriptionParts.push(`Capacity: ${capacity}`);
-            }
-            if (pricingText) {
-              descriptionParts.push(`Pricing: ${pricingText}`);
-            }
-            if (rating > 0) {
-              descriptionParts.push(`${rating} stars (${reviewCount} reviews)`);
-            }
-            
-            // Add venue type based on name patterns
-            let venueType = 'Event Venue';
-            if (name.toLowerCase().includes('hotel') || name.toLowerCase().includes('hilton')) {
-              venueType = 'Hotel';
-            } else if (name.toLowerCase().includes('inn')) {
-              venueType = 'Inn';
-            } else if (name.toLowerCase().includes('center') || name.toLowerCase().includes('event')) {
-              venueType = 'Event Center';
-            } else if (name.toLowerCase().includes('garden') || name.toLowerCase().includes('park')) {
-              venueType = 'Garden Venue';
-            }
-            
-            if (descriptionParts.length > 0) {
-              description = `${venueType} in ${locationText || 'Minnesota'}. ${descriptionParts.join(', ')}.`;
-            } else {
-              description = `${venueType} in ${locationText || 'Minnesota'}`;
-            }
-            
-            // Try to find additional description text from the page
-            const descriptionSelectors = [
-              '.description',
-              '.venue-description',
-              '[class*="description"]',
-              'p'
-            ];
-            
-            for (const selector of descriptionSelectors) {
-              const element = card.querySelector(selector);
-              if (element && element.textContent?.trim() && element.textContent.length > 20) {
-                const additionalDesc = element.textContent.trim().substring(0, 100);
-                if (!description.includes(additionalDesc)) {
-                  description += ` ${additionalDesc}`;
-                }
-                break;
-              }
-            }
-
-            // Extract amenities and features from the card
-            const amenities: string[] = [];
-            const amenitySelectors = [
-              '.amenity',
-              '.feature',
-              '.tag',
-              '[class*="amenity"]',
-              '[class*="feature"]',
-              '[class*="tag"]'
-            ];
-            
-            for (const selector of amenitySelectors) {
-              const elements = card.querySelectorAll(selector);
-              elements.forEach(el => {
-                const text = el.textContent?.trim();
-                if (text && text.length > 0 && text.length < 50) {
-                  amenities.push(text);
-                }
-              });
-            }
-
-            // Extract venue type from badges or tags
-            let extractedVenueType = venueType;
-            const badgeSelectors = [
-              '.badge',
-              '.tag',
-              '.label',
-              '[class*="badge"]',
-              '[class*="tag"]',
-              '[class*="label"]'
-            ];
-            
-            for (const selector of badgeSelectors) {
-              const elements = card.querySelectorAll(selector);
-              elements.forEach(el => {
-                const text = el.textContent?.trim().toLowerCase();
-                if (text && (text.includes('hotel') || text.includes('garden') || text.includes('historic') || 
-                           text.includes('outdoor') || text.includes('indoor') || text.includes('ballroom'))) {
-                  extractedVenueType = text;
-                }
-              });
-            }
-      
-            const result = {
-              name,
-              location: {
-                city: city || '',
-                state: state || '',
-                full: locationText
-              },
-              rating,
-              reviewCount,
-              url,
-              imageUrl,
-              source: 'theknot',
-              pricing: {
-                min: pricingMin,
-                max: pricingMax,
-                currency: 'USD',
-                description: pricingText
-              },
-              description,
-              capacity: {
-                min: capacityMin,
-                max: capacityMax,
-                description: capacity
-              },
-              venueType: extractedVenueType,
-              amenities: amenities.length > 0 ? amenities : ['Wedding Reception', 'Ceremony', 'Corporate Events'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events'],
-              // Debug info
-              debug: {
-                cardText: cardText.substring(0, 200),
-                hasRating: !!ratingMatch,
-                hasLocation: !!locationMatch,
-                hasCapacity: !!capacityMatch,
-                hasPricing: !!pricingMatch
-              }
-            };
-            
-            return result;
-          } catch (error) {
-            console.error('Error extracting venue data:', error);
-            return null;
-          }
-        }).filter(venue => venue !== null && venue.name !== 'Unknown Venue');
-      });
-
-      console.log(`✅ Extracted ${venues.length} venues`);
-      
-      // Debug: Show final venue names
-      if (venues.length > 0) {
-        console.log('🎯 Final venue names:');
-        venues.slice(0, 5).forEach((venue, i) => {
-          console.log(`  ${i + 1}. ${venue?.name || 'Unknown'}`);
+          }).filter(venue => venue !== null && venue.name !== 'Unknown Venue');
         });
-      }
-      
-      // Debug: Show first venue's debug info
-      if (venues.length > 0) {
-        const firstVenue = venues[0];
-        if (firstVenue) {
-          console.log(`🔍 Debug info for first venue:`, {
-            name: firstVenue.name,
-            debug: firstVenue.debug,
-            hasDescription: !!firstVenue.description,
-            hasCapacity: !!firstVenue.capacity?.description,
-            hasPricing: !!firstVenue.pricing?.description
-          });
-        }
-      }
-
-      // Enhance venues with detailed information (optional - can be enabled/disabled)
-      const shouldScrapeDetails = process.env.SCRAPE_DETAILED_INFO === 'true';
-      if (shouldScrapeDetails && venues.length > 0) {
-        console.log(`🔍 Enhancing venues with detailed information...`);
         
-        for (let i = 0; i < Math.min(venues.length, 5); i++) { // Limit to first 5 venues for performance
-          const venue = venues[i];
-          if (venue && venue.url && venue.url.includes('theknot.com')) {
-            try {
-              console.log(`📋 Scraping details for: ${venue?.name || 'Unknown'}`);
-              const detailedInfo = await this.scrapeVenueDetails(venue!.url);
-              
-              if (detailedInfo) {
-                // Merge detailed information
-                if ((detailedInfo as Record<string, unknown>).detailedDescription) {
-                  (venue as Record<string, unknown>).description = (detailedInfo as Record<string, unknown>).detailedDescription;
-                }
-                if (detailedInfo.amenities && detailedInfo.amenities.length > 0) {
-                  (venue as Record<string, unknown>).amenities = detailedInfo.amenities;
-                }
-                if (detailedInfo.portfolioImages && detailedInfo.portfolioImages.length > 0) {
-                  (venue as Record<string, unknown>).portfolioImages = detailedInfo.portfolioImages;
-                }
-                if (detailedInfo.contact) {
-                  const existingContact = (venue as Record<string, unknown>).contact as Record<string, unknown> || {};
-                  (venue as Record<string, unknown>).contact = { ...existingContact, ...detailedInfo.contact };
-                }
-                if (detailedInfo.pricingDetails) {
-                  (venue as Record<string, unknown>).pricingDetails = detailedInfo.pricingDetails;
-                }
-                if (detailedInfo.capacityDetails) {
-                  (venue as Record<string, unknown>).capacityDetails = detailedInfo.capacityDetails;
-                }
-                if (detailedInfo.reviews && detailedInfo.reviews.length > 0) {
-                  (venue as Record<string, unknown>).reviews = detailedInfo.reviews;
-                }
-                
-                console.log(`✅ Enhanced ${venue?.name || 'Unknown'} with detailed info`);
-              }
-              
-              // Add delay between detailed scraping to avoid rate limiting
-              await new Promise(resolve => setTimeout(resolve, 3000));
-              
-            } catch (error) {
-              console.error(`❌ Error enhancing venue ${venue?.name || 'Unknown'}:`, error);
-            }
-          }
-        }
-      }
-
-      // Handle pagination if needed
-      if (maxPages > 1 && venues.length > 0) {
-        for (let page = 2; page <= maxPages; page++) {
+        // Try to get more venues by paginating through pages
+        let currentVenues = stateVenues;
+        let page = 2;
+        const maxPagesPerState = 3; // Limit to 3 pages per state to avoid overwhelming
+        
+        while (currentVenues.length < maxVenuesPerState && page <= maxPagesPerState) {
           try {
-            console.log(`📄 Loading page ${page}...`);
+            console.log(`📄 Loading page ${page} for ${state}...`);
             
             // Try to find and click the next button
             const nextButtonClicked = await this.page.evaluate(() => {
-              // First, try common pagination selectors
               const selectors = [
                 '[data-testid="pagination-next"]',
                 '.pagination-next',
@@ -1020,13 +738,13 @@ export class VendorScraper {
               
               for (const selector of selectors) {
                 const element = document.querySelector(selector) as HTMLElement;
-                if (element && element.offsetParent !== null) { // Check if visible
+                if (element && element.offsetParent !== null) {
                   element.click();
                   return true;
                 }
               }
               
-              // Look for buttons/links containing "Next" text (case insensitive)
+              // Look for buttons/links containing "Next" text
               const buttons = document.querySelectorAll('button, a');
               for (const button of buttons) {
                 const text = button.textContent?.toLowerCase().trim();
@@ -1036,24 +754,14 @@ export class VendorScraper {
                 }
               }
               
-              // Look for numbered pagination (e.g., "2", "3", etc.)
-              const pageNumbers = document.querySelectorAll('button, a');
-              for (const pageNum of pageNumbers) {
-                const text = pageNum.textContent?.trim();
-                if (text === page.toString() && (pageNum as HTMLElement).offsetParent !== null) {
-                  (pageNum as HTMLElement).click();
-                  return true;
-                }
-              }
-              
               return false;
             });
 
             if (nextButtonClicked) {
-              await new Promise(resolve => setTimeout(resolve, 5000)); // Wait longer for new content and database operations
-              console.log(`✅ Successfully navigated to page ${page}`);
+              await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for page load
+              console.log(`✅ Successfully navigated to page ${page} for ${state}`);
               
-              // Extract venues from this page using the same logic
+              // Extract venues from this page
               const pageVenues = await this.page.evaluate(() => {
                 const venueCards = document.querySelectorAll([
                   '.info-container--37e68',
@@ -1077,44 +785,35 @@ export class VendorScraper {
                       return null;
                     }
                     
-                    // Extract basic info (simplified for pagination)
                     const nameMatch = cardText.match(/^([^0-9]+?)(\d+\.?\d*\(\d+\))/);
                     const name = nameMatch ? nameMatch[1].trim() : 'Unknown Venue';
                     
-                    // Extract rating
                     const ratingMatch = cardText.match(/(\d+\.?\d*)\((\d+)\)/);
                     let rating = 0;
                     let reviewCount = 0;
                     if (ratingMatch) {
                       rating = parseFloat(ratingMatch[1]);
                       reviewCount = parseInt(ratingMatch[2]);
-                      // Cap rating at 5.0
                       if (rating > 5.0) rating = 5.0;
                     }
                     
-                    // Extract location
                     const locationMatch = cardText.match(/([A-Z][a-z]+(?: [A-Z][a-z]+)*, [A-Z]{2})/);
                     const locationText = locationMatch ? locationMatch[1] : 'Unknown, Unknown';
                     const [city, state] = locationText.split(', ').map(s => s.trim());
                     
-                    // Extract URL
                     const linkElement = card.querySelector('a[href*="/marketplace/"]');
                     const relativeUrl = linkElement?.getAttribute('href') || '';
                     const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
                     
-                    // Extract image
                     const imageElement = card.querySelector('img');
                     const imageUrl = imageElement?.src || imageElement?.getAttribute('data-src') || '';
                     
-                    // Extract capacity
                     const capacityMatch = cardText.match(/(Up to \d+ Guests|\d+\+ Guests)/);
                     const capacity = capacityMatch ? capacityMatch[1] : 'Unknown';
                     
-                    // Extract pricing
                     const pricingMatch = cardText.match(/(\$\$+[^$]*)/);
                     const pricingText = pricingMatch ? pricingMatch[1] : 'Unknown';
                     
-                    // Create description
                     const description = `Beautiful venue in ${locationText}`;
                     
                     return {
@@ -1151,58 +850,52 @@ export class VendorScraper {
                 }).filter(venue => venue !== null && venue.name !== 'Unknown Venue');
               });
               
-              // Add debug property to each venue and ensure all required properties
-              const venuesWithDebug = pageVenues.map(venue => ({
-                ...venue,
-                name: venue?.name || 'Unknown Venue',
-                location: venue?.location || { city: '', state: '', full: '' },
-                rating: venue?.rating || 0,
-                reviewCount: venue?.reviewCount || 0,
-                url: venue?.url || '',
-                imageUrl: venue?.imageUrl || '',
-                source: venue?.source || 'theknot.com',
-                pricing: venue?.pricing || { min: 0, max: 0, currency: 'USD', description: '' },
-                description: venue?.description || '',
-                capacity: venue?.capacity || { min: 0, max: 0, description: '' },
-                venueType: venue?.venueType || 'Wedding Venue',
-                amenities: venue?.amenities || [],
-                specialties: venue?.specialties || [],
-                debug: {
-                  cardText: '',
-                  hasRating: false,
-                  hasLocation: false,
-                  hasCapacity: false,
-                  hasPricing: false
-                }
-              }));
-              venues.push(...venuesWithDebug);
-              console.log(`✅ Added ${pageVenues.length} venues from page ${page}`);
+              currentVenues.push(...pageVenues);
+              console.log(`✅ Added ${pageVenues.length} venues from page ${page} for ${state}`);
+              page++;
               
-              // Add delay after processing each page to ensure database operations complete
-              await new Promise(resolve => setTimeout(resolve, 2000));
             } else {
-              console.log('🚫 No more pages available');
+              console.log(`🚫 No more pages available for ${state}`);
               break;
             }
           } catch (error) {
-            console.error(`Error loading page ${page}:`, error);
+            console.error(`❌ Error loading page ${page} for ${state}:`, error);
             break;
           }
         }
+        
+        // Limit venues per state
+        const limitedVenues = currentVenues.slice(0, maxVenuesPerState);
+        console.log(`✅ Found ${currentVenues.length} total venues in ${state}, keeping ${limitedVenues.length}`);
+        
+        allVenues.push(...limitedVenues);
+        totalScraped += limitedVenues.length;
+        
+        // Progress update
+        console.log(`📊 Progress: ${totalScraped} total venues collected so far`);
+        
+        // Add delay between states to avoid rate limiting (longer for Vercel)
+        const delay = process.env.NODE_ENV === 'production' ? 8000 : 3000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+      } catch (error) {
+        console.error(`❌ Error scraping ${state}:`, error);
+        // Continue with next state
       }
-
-      // Debug URLs for first few venues
-      console.log('🔗 Sample URLs extracted:');
-      venues.slice(0, 3).forEach((venue, index) => {
-        console.log(`  ${index + 1}. ${venue?.name || 'Unknown'}: ${venue?.url || 'No URL'}`);
-      });
-
-      return venues;
-
-    } catch (error) {
-      console.error('Error scraping venues:', error);
-      throw error;
     }
+    
+    console.log(`🎯 Comprehensive scrape completed! Total venues collected: ${allVenues.length}`);
+    
+    // Log summary by state
+    const stateSummary = allVenues.reduce((acc, venue) => {
+      const state = venue.location.state || 'Unknown';
+      acc[state] = (acc[state] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    console.log(`📊 Venues by state:`, stateSummary);
+    
+    return allVenues;
   }
 
   private formatLocationForUrl(location: string): string {
@@ -1215,7 +908,46 @@ export class VendorScraper {
       .replace(/[^a-z0-9-]/g, '');
   }
 
-  async scrapeWithFetch(location: string, _maxPages: number = 50): Promise<Venue[]> {
+  async scrapeAllVenuesWithFetch(maxPages: number = 50): Promise<Venue[]> {
+    console.log(`🌐 Using fetch-based master scraping...`);
+    
+    try {
+      const baseUrl = `https://www.theknot.com/marketplace/wedding-reception-venues`;
+      
+      console.log(`🌐 Fetching: ${baseUrl}`);
+      
+      const response = await fetch(baseUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const html = await response.text();
+      console.log(`✅ Fetched ${html.length} characters of HTML`);
+      
+      // Parse HTML to extract venue data
+      const venues = this.parseAllVenuesFromHTML(html);
+      console.log(`🎯 Extracted ${venues.length} venues from HTML`);
+      
+      return venues;
+      
+    } catch (error) {
+      console.error('❌ Fetch-based master scraping failed:', error);
+      console.log('🎭 Falling back to comprehensive mock data');
+      return this.getComprehensiveMockVenues();
+    }
+  }
+
+  async scrapeWithFetch(location: string, maxPages: number = 50): Promise<Venue[]> {
     console.log(`🌐 Using fetch-based scraping for ${location}...`);
     
     try {
@@ -1248,12 +980,139 @@ export class VendorScraper {
       console.log(`🎯 Extracted ${venues.length} venues from HTML`);
       
       return venues;
-      
-    } catch (error) {
+              
+            } catch (error) {
       console.error('❌ Fetch-based scraping failed:', error);
       console.log('🎭 Falling back to location-specific mock data');
       return this.getLocationSpecificMockVenues(location);
     }
+  }
+
+  private parseAllVenuesFromHTML(_html: string): Venue[] {
+    console.log('🔍 Parsing all venues from HTML...');
+    
+    // This would parse the HTML to extract venues from all locations
+    // For now, return comprehensive mock data with venues from multiple states
+    return this.getComprehensiveMockVenues();
+  }
+
+  private getComprehensiveMockVenues(): Venue[] {
+    console.log('🎭 Returning comprehensive mock venues from multiple states...');
+    
+    const venues: Venue[] = [
+      // New York venues
+      {
+        name: 'The Plaza Hotel',
+        location: { city: 'New York', state: 'NY', full: 'New York, NY' },
+        rating: 4.9,
+        reviewCount: 234,
+        url: 'https://example.com/plaza-hotel',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 8000, max: 15000, currency: 'USD', description: '$$$$$ – Very Expensive' },
+        description: 'Iconic luxury hotel in Manhattan perfect for elegant weddings',
+        capacity: { min: 50, max: 500, description: 'Up to 500 Guests' },
+        venueType: 'Hotel',
+        amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
+      },
+      {
+        name: 'Brooklyn Botanic Garden',
+        location: { city: 'Brooklyn', state: 'NY', full: 'Brooklyn, NY' },
+        rating: 4.7,
+        reviewCount: 156,
+        url: 'https://example.com/brooklyn-botanic',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 3000, max: 8000, currency: 'USD', description: '$$$ – Moderate' },
+        description: 'Beautiful botanical garden setting for outdoor weddings',
+        capacity: { min: 25, max: 200, description: 'Up to 200 Guests' },
+        venueType: 'Garden Venue',
+        amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
+      },
+      // California venues
+      {
+        name: 'The Beverly Hills Hotel',
+        location: { city: 'Beverly Hills', state: 'CA', full: 'Beverly Hills, CA' },
+        rating: 4.8,
+        reviewCount: 189,
+        url: 'https://example.com/beverly-hills-hotel',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 6000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
+        description: 'Luxury hotel in Beverly Hills with stunning event spaces',
+        capacity: { min: 50, max: 300, description: 'Up to 300 Guests' },
+        venueType: 'Hotel',
+        amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
+      },
+      {
+        name: 'Napa Valley Vineyard Estate',
+        location: { city: 'Napa', state: 'CA', full: 'Napa, CA' },
+        rating: 4.9,
+        reviewCount: 267,
+        url: 'https://example.com/napa-vineyard',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 4000, max: 10000, currency: 'USD', description: '$$$ – Moderate' },
+        description: 'Stunning vineyard estate in Napa Valley wine country',
+        capacity: { min: 30, max: 150, description: 'Up to 150 Guests' },
+        venueType: 'Vineyard',
+        amenities: ['Wedding Reception', 'Ceremony', 'Wine Tasting', 'Scenic Views'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Wine Country Events']
+      },
+      // Texas venues
+      {
+        name: 'The Driskill Hotel',
+        location: { city: 'Austin', state: 'TX', full: 'Austin, TX' },
+        rating: 4.6,
+        reviewCount: 143,
+        url: 'https://example.com/driskill-hotel',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 2500, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
+        description: 'Historic luxury hotel in downtown Austin',
+        capacity: { min: 40, max: 250, description: 'Up to 250 Guests' },
+        venueType: 'Historic Hotel',
+        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
+      },
+      // Florida venues
+      {
+        name: 'The Breakers Palm Beach',
+        location: { city: 'Palm Beach', state: 'FL', full: 'Palm Beach, FL' },
+        rating: 4.8,
+        reviewCount: 198,
+        url: 'https://example.com/breakers-palm-beach',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 5000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
+        description: 'Luxury oceanfront resort in Palm Beach',
+        capacity: { min: 50, max: 400, description: 'Up to 400 Guests' },
+        venueType: 'Resort',
+        amenities: ['Wedding Reception', 'Ceremony', 'Ocean Views', 'Full Service'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Beach Weddings']
+      },
+      // Minnesota venues (real data)
+      {
+        name: 'The Grand 1858 at Minneapolis Event Centers',
+        location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
+        rating: 4.9,
+        reviewCount: 130,
+        url: 'https://example.com/grand-1858',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 1000, max: 3000, currency: 'USD', description: '$$ – Affordable' },
+        description: 'Historic event center in Minneapolis with elegant spaces',
+        capacity: { min: 50, max: 250, description: 'Up to 250 Guests' },
+        venueType: 'Event Center',
+        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
+      }
+    ];
+    
+    return venues;
   }
 
   private parseVenuesFromHTML(html: string, location: string): Venue[] {

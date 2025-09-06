@@ -1,37 +1,13 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "outputDirectory": ".next",
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 60
-    }
-  },
-  "build": {
-    "env": {
-      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
-      "PUPPETEER_EXECUTABLE_PATH": "/usr/bin/chromium-browser"
-    }
-  },
-  "headers": [
+  "crons": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
+      "path": "/api/scraping/comprehensive",
+      "schedule": "0 2 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/scraping/comprehensive/route.ts": {
+      "maxDuration": 300
+    }
+  }
 }

@@ -32,6 +32,19 @@ interface ScrapingProgress {
   error?: string;
 }
 
+interface ComprehensiveProgress {
+  isRunning: boolean;
+  currentBatch: string;
+  nextStartIndex: number | null;
+  isComplete: boolean;
+  totalStates: number;
+  venuesScraped: number;
+  statesProcessed: number;
+  venuesPerState: number;
+  status: string;
+  error?: string;
+}
+
 export default function ScrapingDashboard() {
   const [jobs, setJobs] = useState<ScrapingJob[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,6 +53,16 @@ export default function ScrapingDashboard() {
   const [maxVenues, setMaxVenues] = useState(50);
   const [maxPages, setMaxPages] = useState(10);
   const [progress, setProgress] = useState<ScrapingProgress | null>(null);
+  const [comprehensiveProgress, setComprehensiveProgress] = useState<ComprehensiveProgress | null>(null);
+  const [comprehensiveLoading, setComprehensiveLoading] = useState(false);
+  const [comprehensiveResults, setComprehensiveResults] = useState<{
+    success: boolean;
+    message: string;
+    venuesScraped: number;
+    batchInfo: any;
+    summary: any;
+    timestamp: string;
+  } | null>(null);
   const [results, setResults] = useState<{
     success: boolean;
     message: string;
@@ -119,6 +142,104 @@ export default function ScrapingDashboard() {
       setProgress(prev => prev ? { ...prev, isRunning: false, status: 'Failed', error: 'Network error' } : null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerComprehensiveScraping = async (startIndex: number = 0, maxStates: number = 10) => {
+    setComprehensiveLoading(true);
+    setComprehensiveProgress({
+      isRunning: true,
+      currentBatch: `${startIndex + 1}-${startIndex + maxStates}`,
+      nextStartIndex: null,
+      isComplete: false,
+      totalStates: 50,
+      venuesScraped: 0,
+      statesProcessed: 0,
+      venuesPerState: 0,
+      status: 'Starting comprehensive scraping...'
+    });
+    setComprehensiveResults(null);
+
+    try {
+      const response = await fetch('/api/scraping/comprehensive', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'test-secret-key-123'}`
+        },
+        body: JSON.stringify({
+          startIndex,
+          maxStates
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setComprehensiveProgress({
+          isRunning: false,
+          currentBatch: data.batchInfo?.currentBatch || 'Unknown',
+          nextStartIndex: data.batchInfo?.nextStartIndex,
+          isComplete: data.batchInfo?.isComplete || false,
+          totalStates: data.batchInfo?.totalStates || 50,
+          venuesScraped: data.venuesScraped || 0,
+          statesProcessed: data.summary?.statesProcessed || 0,
+          venuesPerState: data.summary?.venuesPerState || 0,
+          status: data.batchInfo?.isComplete ? 'All states completed!' : 'Batch completed successfully'
+        });
+        setComprehensiveResults({
+          success: true,
+          message: data.message || 'Comprehensive scraping completed successfully',
+          venuesScraped: data.venuesScraped || 0,
+          batchInfo: data.batchInfo,
+          summary: data.summary,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        setComprehensiveProgress({
+          isRunning: false,
+          currentBatch: 'Unknown',
+          nextStartIndex: null,
+          isComplete: false,
+          totalStates: 50,
+          venuesScraped: 0,
+          statesProcessed: 0,
+          venuesPerState: 0,
+          status: 'Failed',
+          error: data.error || 'Unknown error occurred'
+        });
+        setComprehensiveResults({
+          success: false,
+          message: data.error || 'Comprehensive scraping failed',
+          venuesScraped: 0,
+          batchInfo: null,
+          summary: null,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      setComprehensiveProgress({
+        isRunning: false,
+        currentBatch: 'Unknown',
+        nextStartIndex: null,
+        isComplete: false,
+        totalStates: 50,
+        venuesScraped: 0,
+        statesProcessed: 0,
+        venuesPerState: 0,
+        status: 'Failed',
+        error: error instanceof Error ? error.message : 'Network error'
+      });
+      setComprehensiveResults({
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error',
+        venuesScraped: 0,
+        batchInfo: null,
+        summary: null,
+        timestamp: new Date().toISOString()
+      });
+    } finally {
+      setComprehensiveLoading(false);
     }
   };
 
@@ -381,6 +502,172 @@ export default function ScrapingDashboard() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Comprehensive Scraping Section */}
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Comprehensive 50-State Scraping</h2>
+        <p className="text-gray-600 mb-6">
+          Scrape venues from all 50 US states in batches. This will process 10 states per run to stay within timeout limits.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start Index
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="49"
+              defaultValue="0"
+              id="startIndex"
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            />
+            <p className="text-sm text-gray-500 mt-1">Which state to start from (0-49)</p>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Max States per Batch
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="50"
+              defaultValue="10"
+              id="maxStates"
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            />
+            <p className="text-sm text-gray-500 mt-1">Number of states to process (1-50)</p>
+          </div>
+          
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                const startIndex = parseInt((document.getElementById('startIndex') as HTMLInputElement)?.value || '0');
+                const maxStates = parseInt((document.getElementById('maxStates') as HTMLInputElement)?.value || '10');
+                triggerComprehensiveScraping(startIndex, maxStates);
+              }}
+              disabled={comprehensiveLoading}
+              className="w-full bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {comprehensiveLoading ? 'Starting...' : 'Start Comprehensive Scraping'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Comprehensive Progress Section */}
+      {comprehensiveProgress && (
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Comprehensive Scraping Progress</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Status:</span>
+              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                comprehensiveProgress.isRunning 
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : comprehensiveProgress.error
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-green-100 text-green-800'
+              }`}>
+                {comprehensiveProgress.status}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Current Batch:</span>
+              <span className="text-sm text-gray-900">{comprehensiveProgress.currentBatch}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">States Processed:</span>
+              <span className="text-sm text-gray-900">{comprehensiveProgress.statesProcessed} / {comprehensiveProgress.totalStates}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Venues Scraped:</span>
+              <span className="text-sm text-gray-900">{comprehensiveProgress.venuesScraped}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Average per State:</span>
+              <span className="text-sm text-gray-900">{comprehensiveProgress.venuesPerState}</span>
+            </div>
+            
+            {comprehensiveProgress.nextStartIndex !== null && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Next Batch:</span>
+                <span className="text-sm text-gray-900">States {comprehensiveProgress.nextStartIndex + 1}-{Math.min(comprehensiveProgress.nextStartIndex + 10, 50)}</span>
+              </div>
+            )}
+            
+            {comprehensiveProgress.error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-800">{comprehensiveProgress.error}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Comprehensive Results Section */}
+      {comprehensiveResults && (
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Comprehensive Scraping Results</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">Status</p>
+                <p className={`text-lg font-semibold ${comprehensiveResults.success ? 'text-green-600' : 'text-red-600'}`}>
+                  {comprehensiveResults.success ? 'Success' : 'Failed'}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">Venues Scraped</p>
+                <p className="text-lg font-semibold text-gray-900">{comprehensiveResults.venuesScraped}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">States Processed</p>
+                <p className="text-lg font-semibold text-gray-900">{comprehensiveResults.summary?.statesProcessed || 0}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">Avg per State</p>
+                <p className="text-lg font-semibold text-gray-900">{comprehensiveResults.summary?.venuesPerState || 0}</p>
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Message</p>
+              <p className="text-gray-900">{comprehensiveResults.message}</p>
+            </div>
+            
+            {comprehensiveResults.batchInfo && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">Batch Information</p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Current Batch:</span> {comprehensiveResults.batchInfo.currentBatch}
+                  </div>
+                  <div>
+                    <span className="font-medium">Next Start Index:</span> {comprehensiveResults.batchInfo.nextStartIndex || 'Complete'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Is Complete:</span> {comprehensiveResults.batchInfo.isComplete ? 'Yes' : 'No'}
+                  </div>
+                  <div>
+                    <span className="font-medium">Total States:</span> {comprehensiveResults.batchInfo.totalStates}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="text-sm text-gray-500">
+              Completed at: {new Date(comprehensiveResults.timestamp).toLocaleString()}
+            </div>
           </div>
         </div>
       )}
