@@ -1137,7 +1137,8 @@ export class VendorScraper {
                 specialties: venue?.specialties || [],
                 debug: {
                   cardText: '',
-                  hasDescription: false,
+                  hasRating: false,
+                  hasLocation: false,
                   hasCapacity: false,
                   hasPricing: false
                 }
