@@ -57,19 +57,39 @@ export class VendorScraper {
   async initialize() {
     console.log('🚀 Initializing Puppeteer browser...');
     
+    // Check if we're in Vercel environment
+    const isVercel = process.env.VERCEL === '1';
+    console.log(`🌐 Environment: ${isVercel ? 'Vercel' : 'Local'}`);
+    
     try {
-      // For Vercel deployment, you might need to use browserless.io or similar
-    this.browser = await puppeteer.launch({
+      // For Vercel deployment, use optimized settings
+      const launchOptions = isVercel ? {
         headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--window-size=1920x1080',
+          '--single-process',
+          '--no-zygote'
+        ]
+      } : {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
           '--window-size=1920x1080'
         ]
-      });
+      };
+
+      this.browser = await puppeteer.launch(launchOptions);
       console.log('✅ Browser launched successfully');
     } catch (error: unknown) {
       console.error('❌ Failed to launch browser:', error);
@@ -1197,26 +1217,57 @@ export class VendorScraper {
 
   private getMockVenues(location: string): Venue[] {
     console.log(`🎭 Returning mock venues for ${location}`);
-    return [
+    
+    // Generate more realistic mock data based on location
+    const mockVenues = [
       {
-        name: 'Mock Venue 1',
+        name: 'The Grand Ballroom',
         location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-        rating: 4.5,
-        reviewCount: 25,
-        url: 'https://example.com',
+        rating: 4.8,
+        reviewCount: 127,
+        url: 'https://example.com/venue1',
         imageUrl: '',
-        source: 'mock'
+        source: 'mock',
+        pricing: { min: 2500, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
+        description: 'Elegant ballroom venue perfect for weddings and special events',
+        capacity: { min: 100, max: 300, description: 'Up to 300 Guests' },
+        venueType: 'Ballroom',
+        amenities: ['Wedding Reception', 'Ceremony', 'Corporate Events', 'Catering Available'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
       },
       {
-        name: 'Mock Venue 2', 
+        name: 'Garden Pavilion', 
         location: { city: 'St. Paul', state: 'MN', full: 'St. Paul, MN' },
-        rating: 4.2,
-        reviewCount: 18,
-        url: 'https://example.com',
+        rating: 4.6,
+        reviewCount: 89,
+        url: 'https://example.com/venue2',
         imageUrl: '',
-        source: 'mock'
+        source: 'mock',
+        pricing: { min: 1800, max: 3500, currency: 'USD', description: '$$ – Affordable' },
+        description: 'Beautiful outdoor garden venue with covered pavilion',
+        capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
+        venueType: 'Garden Venue',
+        amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
+      },
+      {
+        name: 'Historic Manor House',
+        location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
+        rating: 4.9,
+        reviewCount: 156,
+        url: 'https://example.com/venue3',
+        imageUrl: '',
+        source: 'mock',
+        pricing: { min: 3000, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
+        description: 'Charming historic manor with elegant indoor and outdoor spaces',
+        capacity: { min: 75, max: 250, description: 'Up to 250 Guests' },
+        venueType: 'Historic Venue',
+        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Indoor/Outdoor'],
+        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
       }
     ];
+    
+    return mockVenues;
   }
 
   async close() {

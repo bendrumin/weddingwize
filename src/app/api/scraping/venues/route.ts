@@ -84,26 +84,57 @@ export async function POST(request: NextRequest) {
         console.log(`✅ Real scraper completed successfully - scraped ${pagesToScrape} pages`);
       } catch (scraperError: unknown) {
         console.log('⚠️ Real scraper failed, using mock data:', scraperError instanceof Error ? scraperError.message : String(scraperError));
-        venues = [
+        
+        // Create more realistic mock data based on location
+        const mockVenues = [
           {
-            name: 'Test Venue 1',
+            name: 'The Grand Ballroom',
             location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-            rating: 4.5,
-            reviewCount: 25,
-            url: 'https://example.com',
+            rating: 4.8,
+            reviewCount: 127,
+            url: 'https://example.com/venue1',
             imageUrl: '',
-            source: 'theknot'
+            source: 'mock',
+            pricing: { min: 2500, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
+            description: 'Elegant ballroom venue perfect for weddings and special events',
+            capacity: { min: 100, max: 300, description: 'Up to 300 Guests' },
+            venueType: 'Ballroom',
+            amenities: ['Wedding Reception', 'Ceremony', 'Corporate Events', 'Catering Available'],
+            specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
           },
           {
-            name: 'Test Venue 2', 
+            name: 'Garden Pavilion', 
             location: { city: 'St. Paul', state: 'MN', full: 'St. Paul, MN' },
-            rating: 4.2,
-            reviewCount: 18,
-            url: 'https://example.com',
+            rating: 4.6,
+            reviewCount: 89,
+            url: 'https://example.com/venue2',
             imageUrl: '',
-            source: 'theknot'
+            source: 'mock',
+            pricing: { min: 1800, max: 3500, currency: 'USD', description: '$$ – Affordable' },
+            description: 'Beautiful outdoor garden venue with covered pavilion',
+            capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
+            venueType: 'Garden Venue',
+            amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
+            specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
+          },
+          {
+            name: 'Historic Manor House',
+            location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
+            rating: 4.9,
+            reviewCount: 156,
+            url: 'https://example.com/venue3',
+            imageUrl: '',
+            source: 'mock',
+            pricing: { min: 3000, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
+            description: 'Charming historic manor with elegant indoor and outdoor spaces',
+            capacity: { min: 75, max: 250, description: 'Up to 250 Guests' },
+            venueType: 'Historic Venue',
+            amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Indoor/Outdoor'],
+            specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
           }
         ];
+        
+        venues = mockVenues;
         console.log('✅ Mock data created as fallback');
       }
 
