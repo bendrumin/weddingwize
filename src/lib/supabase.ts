@@ -29,8 +29,8 @@ export type Database = {
       wedding_profiles: {
         Row: {
           id: string;
-          bride_name: string | null;
-          groom_name: string | null;
+          partner1_name: string | null;
+          partner2_name: string | null;
           wedding_date: string;
           total_budget: number;
           guest_count: number;
@@ -46,8 +46,8 @@ export type Database = {
         };
         Insert: {
           id: string;
-          bride_name?: string | null;
-          groom_name?: string | null;
+          partner1_name?: string | null;
+          partner2_name?: string | null;
           wedding_date: string;
           total_budget: number;
           guest_count: number;
@@ -63,8 +63,8 @@ export type Database = {
         };
         Update: {
           id?: string;
-          bride_name?: string | null;
-          groom_name?: string | null;
+          partner1_name?: string | null;
+          partner2_name?: string | null;
           wedding_date?: string;
           total_budget?: number;
           guest_count?: number;

@@ -11,8 +11,8 @@ export default function SignUpPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    brideName: '',
-    groomName: '',
+    partner1Name: '',
+    partner2Name: '',
     weddingDate: '',
     budget: '',
     guestCount: '',
@@ -50,8 +50,8 @@ export default function SignUpPage() {
 
     try {
       const { error } = await signUp(formData.email, formData.password, {
-        bride_name: formData.brideName,
-        groom_name: formData.groomName,
+        partner1_name: formData.partner1Name,
+        partner2_name: formData.partner2Name,
         wedding_date: new Date(formData.weddingDate),
         total_budget: parseInt(formData.budget),
         guest_count: parseInt(formData.guestCount),
@@ -195,37 +195,37 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Bride Name */}
+            {/* Partner 1 Name */}
             <div>
-              <label htmlFor="brideName" className="block text-sm font-medium text-gray-700 mb-2">
-                Bride's Name
+              <label htmlFor="partner1Name" className="block text-sm font-medium text-gray-700 mb-2">
+                Partner 1's Name
               </label>
               <input
                 type="text"
-                id="brideName"
-                name="brideName"
-                value={formData.brideName}
+                id="partner1Name"
+                name="partner1Name"
+                value={formData.partner1Name}
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                placeholder="Enter bride's name"
+                placeholder="Enter first partner's name"
               />
             </div>
 
-            {/* Groom Name */}
+            {/* Partner 2 Name */}
             <div>
-              <label htmlFor="groomName" className="block text-sm font-medium text-gray-700 mb-2">
-                Groom's Name
+              <label htmlFor="partner2Name" className="block text-sm font-medium text-gray-700 mb-2">
+                Partner 2's Name
               </label>
               <input
                 type="text"
-                id="groomName"
-                name="groomName"
-                value={formData.groomName}
+                id="partner2Name"
+                name="partner2Name"
+                value={formData.partner2Name}
                 onChange={handleInputChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                placeholder="Enter groom's name"
+                placeholder="Enter second partner's name"
               />
             </div>
 

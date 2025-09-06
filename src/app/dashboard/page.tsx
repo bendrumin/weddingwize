@@ -79,8 +79,8 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {profile.bride_name && profile.groom_name 
-              ? `${profile.bride_name} & ${profile.groom_name}` 
+            Welcome back, {profile.partner1_name && profile.partner2_name 
+              ? `${profile.partner1_name} & ${profile.partner2_name}` 
               : 'Couple'}!
           </h1>
           <p className="text-gray-600">

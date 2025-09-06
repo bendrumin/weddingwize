@@ -8,8 +8,8 @@ create extension if not exists "pg_trgm";
 -- Wedding profiles (extends Supabase auth)
 create table public.wedding_profiles (
   id uuid references auth.users on delete cascade primary key,
-  bride_name text,
-  groom_name text,
+  partner1_name text,
+  partner2_name text,
   wedding_date date not null,
   total_budget integer not null,
   guest_count integer not null,

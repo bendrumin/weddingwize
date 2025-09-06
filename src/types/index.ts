@@ -12,8 +12,8 @@ export interface Location {
 
 export interface WeddingProfile {
   id: string;
-  bride_name?: string;
-  groom_name?: string;
+  partner1_name?: string;
+  partner2_name?: string;
   wedding_date: Date;
   total_budget: number;
   guest_count: number;
@@ -276,8 +276,8 @@ export interface PaginatedResponse<T> {
 // Form types
 export interface OnboardingFormData {
   coupleNames: {
-    bride: string;
-    groom: string;
+    partner1: string;
+    partner2: string;
   };
   weddingDate: string;
   budget: number;

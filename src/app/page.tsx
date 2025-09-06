@@ -68,7 +68,7 @@ export default function Home() {
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             The most intelligent wedding planning platform that combines real-time vendor data 
-            with AI optimization to create your dream wedding within budget.
+            with AI optimization to create your dream wedding within budget. Perfect for all couples.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -177,7 +177,8 @@ export default function Home() {
             Ready to Plan Your Dream Wedding?
           </h2>
           <p className="text-xl text-pink-100 mb-8">
-            Join thousands of couples who have already discovered the power of AI-driven wedding planning.
+            Join thousands of couples who have already discovered the power of AI-driven wedding planning. 
+            Inclusive and welcoming to all.
           </p>
           <Link
             href="/auth/signup"
