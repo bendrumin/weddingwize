@@ -10,10 +10,12 @@ interface AuthContextType {
   session: Session | null;
   profile: WeddingProfile | null;
   loading: boolean;
+  signupData: Partial<WeddingProfile> | null;
   signUp: (email: string, password: string, userData: Partial<WeddingProfile>) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<WeddingProfile>) => Promise<{ error: any }>;
+  clearSignupData: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<WeddingProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signupData, setSignupData] = useState<Partial<WeddingProfile> | null>(null);
 
   useEffect(() => {
     // Get initial session
@@ -122,22 +125,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        // Wait a moment for the session to be established
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Store signup data for onboarding
+        setSignupData(userData);
         
-        // Create wedding profile with explicit user context
-        const { error: profileError } = await supabase
-          .from('wedding_profiles')
-          .insert({
-            id: data.user.id,
-            ...userData,
-          });
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          // Don't return error here - let the user sign up and create profile later
-          console.log('Profile will be created on first login');
-        }
+        // Don't create profile yet - let onboarding handle it
+        console.log('User signed up successfully, redirecting to onboarding');
       }
 
       return { error: null };
@@ -161,23 +153,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSignupData(null); // Clear signup data on signout
   };
 
   const updateProfile = async (updates: Partial<WeddingProfile>) => {
     if (!user) return { error: new Error('No user logged in') };
 
     try {
-      const { error } = await supabase
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
         .from('wedding_profiles')
-        .update(updates)
-        .eq('id', user.id);
+        .select('id')
+        .eq('id', user.id)
+        .single();
 
-      if (error) {
-        return { error };
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        result = await supabase
+          .from('wedding_profiles')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+          .select()
+          .single();
+      } else {
+        // Create new profile
+        result = await supabase
+          .from('wedding_profiles')
+          .insert({
+            id: user.id,
+            ...updates,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        return { error: result.error };
       }
 
       // Update local state
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      setProfile(result.data);
 
       return { error: null };
     } catch (error) {
@@ -185,15 +206,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const clearSignupData = () => {
+    setSignupData(null);
+  };
+
   const value = {
     user,
     session,
     profile,
     loading,
+    signupData,
     signUp,
     signIn,
     signOut,
     updateProfile,
+    clearSignupData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

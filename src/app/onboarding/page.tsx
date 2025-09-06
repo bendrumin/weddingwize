@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { WeddingProfile, Location, WeddingStyle, CategoryPriorities, PlanningStage } from '@/types';
 
 export default function OnboardingPage() {
-  const { user, profile, updateProfile } = useAuth();
+  const { user, profile, signupData, updateProfile, clearSignupData } = useAuth();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -59,23 +59,24 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Pre-fill form with existing profile data
-    if (profile) {
+    // Pre-fill form with signup data first, then existing profile data
+    const dataSource = signupData || profile;
+    if (dataSource) {
       setFormData({
-        partner1Name: profile.partner1_name || '',
-        partner2Name: profile.partner2_name || '',
-        weddingDate: profile.wedding_date ? new Date(profile.wedding_date).toISOString().split('T')[0] : '',
-        totalBudget: profile.total_budget || 25000,
-        guestCount: profile.guest_count || 100,
-        city: profile.location?.city || '',
-        state: profile.location?.state || '',
-        zipcode: profile.location?.zipcode || '',
-        weddingStyles: profile.wedding_style || [],
-        priorities: profile.priorities || formData.priorities,
-        planningStage: profile.planning_stage || 'just_started',
+        partner1Name: dataSource.partner1_name || '',
+        partner2Name: dataSource.partner2_name || '',
+        weddingDate: dataSource.wedding_date ? new Date(dataSource.wedding_date).toISOString().split('T')[0] : '',
+        totalBudget: dataSource.total_budget || 25000,
+        guestCount: dataSource.guest_count || 100,
+        city: dataSource.location?.city || '',
+        state: dataSource.location?.state || '',
+        zipcode: dataSource.location?.zipcode || '',
+        weddingStyles: dataSource.wedding_style || [],
+        priorities: dataSource.priorities || formData.priorities,
+        planningStage: dataSource.planning_stage || 'just_started',
       });
     }
-  }, [user, profile, router]);
+  }, [user, profile, signupData, router]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -129,6 +130,7 @@ export default function OnboardingPage() {
       };
 
       await updateProfile(profileData);
+      clearSignupData(); // Clear the temporary signup data
       router.push('/dashboard');
     } catch (error) {
       console.error('Error updating profile:', error);
