@@ -48,11 +48,13 @@ create table public.vendors (
 );
 
 -- Create indexes for fast vendor queries
-create index idx_vendors_category_location on vendors using gin(category, location);
+create index idx_vendors_category on vendors (category);
+create index idx_vendors_location on vendors using gin(location);
 create index idx_vendors_pricing on vendors using gin(pricing);
 create index idx_vendors_rating on vendors (rating desc nulls last);
 create index idx_vendors_featured on vendors (featured desc, rating desc nulls last);
-create index idx_vendors_category on vendors (category);
+create index idx_vendors_verified on vendors (verified);
+create index idx_vendors_specialties on vendors using gin(specialties);
 
 -- User budget allocations (AI-optimized)
 create table public.budget_allocations (
