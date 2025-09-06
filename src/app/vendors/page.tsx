@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, 
@@ -86,7 +86,7 @@ export default function VendorsPage() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [allVendors, setAllVendors] = useState<VendorMatch[]>([]);
+  const [, setAllVendors] = useState<VendorMatch[]>([]);
   const [vendors, setVendors] = useState<VendorMatch[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('venue');
   const [searchLocation, setSearchLocation] = useState('');
@@ -97,6 +97,7 @@ export default function VendorsPage() {
     featuredOnly: false
   });
   const [selectedVendorForInquiry, setSelectedVendorForInquiry] = useState<Vendor | null>(null);
+  const allVendorsRef = useRef<VendorMatch[]>([]);
 
   const categories = [
     { key: 'venue', label: 'Venues', icon: '🏛️', description: 'Ceremony & reception locations' },
@@ -108,7 +109,7 @@ export default function VendorsPage() {
   ];
 
   // Client-side filtering function
-  const applyFilters = useCallback((vendorsToFilter: VendorMatch[] = allVendors) => {
+  const applyFilters = useCallback((vendorsToFilter: VendorMatch[] = allVendorsRef.current) => {
     let filtered = [...vendorsToFilter];
 
     // Location filter
@@ -148,82 +149,81 @@ export default function VendorsPage() {
     }
 
     setVendors(filtered);
-  }, [allVendors, searchLocation, filters]);
+  }, [searchLocation, filters]);
 
-  const loadVendors = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Fetch all venues - location filtering is now handled in the UI
-      const params = new URLSearchParams({
-        category: selectedCategory,
-        limit: '1000' // Get a large number to fetch all venues
-      });
-
-      const response = await fetch(`/api/vendors?${params}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        // Transform vendors to match the expected interface
-        const transformedVendors = data.vendors?.map((vendor: Vendor) => ({
-          vendor: {
-            id: vendor.id,
-            name: vendor.name,
-            category: vendor.category,
-            businessType: vendor.businessType,
-            location: vendor.location,
-            pricing: vendor.pricing,
-            rating: vendor.rating,
-            reviewCount: vendor.reviewCount,
-            portfolioImages: vendor.portfolioImages,
-            description: vendor.description,
-            specialties: vendor.specialties,
-            verified: vendor.verified,
-            featured: vendor.featured,
-            contact: vendor.contact,
-            capacity: vendor.capacity,
-            venueType: vendor.venueType,
-            amenities: vendor.amenities,
-            lastScraped: vendor.lastScraped
-          },
-          compatibilityScore: Math.random() * 40 + 60, // Mock compatibility score
-          matchReasons: ['Great reviews', 'Within budget', 'Perfect location'],
-          priceFit: vendor.pricing?.max < 5000 ? 'under_budget' : 
-                   vendor.pricing?.max < 10000 ? 'within_budget' : 'over_budget',
-          qualityScore: vendor.rating * 20,
-          valueScore: Math.random() * 40 + 60
-        })) || [];
-        
-        setAllVendors(transformedVendors);
-        // Apply initial filtering
-        applyFilters(transformedVendors);
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        setError(errorData.error || 'Failed to load vendors');
-        console.error('Failed to load vendors:', response.statusText);
-      }
-    } catch (error) {
-      setError('Network error. Please try again.');
-      console.error('Error loading vendors:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedCategory, applyFilters]);
 
   useEffect(() => {
     // Set default location if profile is available
     if (profile?.location?.city) {
       setSearchLocation(profile.location.city);
     }
-    loadVendors();
-  }, [profile?.location?.city, selectedCategory, loadVendors]);
+    
+    // Load vendors when category changes
+    const loadVendorsData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          category: selectedCategory,
+          limit: '1000'
+        });
+
+        const response = await fetch(`/api/vendors?${params}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const transformedVendors = data.vendors?.map((vendor: Vendor) => ({
+            vendor: {
+              id: vendor.id,
+              name: vendor.name,
+              category: vendor.category,
+              businessType: vendor.businessType,
+              location: vendor.location,
+              pricing: vendor.pricing,
+              rating: vendor.rating,
+              reviewCount: vendor.reviewCount,
+              portfolioImages: vendor.portfolioImages,
+              description: vendor.description,
+              specialties: vendor.specialties,
+              verified: vendor.verified,
+              featured: vendor.featured,
+              contact: vendor.contact,
+              capacity: vendor.capacity,
+              venueType: vendor.venueType,
+              amenities: vendor.amenities,
+              lastScraped: vendor.lastScraped
+            },
+            compatibilityScore: Math.random() * 40 + 60,
+            matchReasons: ['Great reviews', 'Within budget', 'Perfect location'],
+            priceFit: vendor.pricing?.max < 5000 ? 'under_budget' : 
+                     vendor.pricing?.max < 10000 ? 'within_budget' : 'over_budget',
+            qualityScore: vendor.rating * 20,
+            valueScore: Math.random() * 40 + 60
+          })) || [];
+          
+          setAllVendors(transformedVendors);
+          allVendorsRef.current = transformedVendors;
+        } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          setError(errorData.error || 'Failed to load vendors');
+        }
+      } catch (error) {
+        setError('Network error. Please try again.');
+        console.error('Error loading vendors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadVendorsData();
+  }, [profile?.location?.city, selectedCategory]);
 
   // Apply filters when search location or filters change
   useEffect(() => {
-    if (allVendors.length > 0) {
+    if (allVendorsRef.current.length > 0) {
       applyFilters();
     }
-  }, [searchLocation, filters, allVendors.length, applyFilters]);
+  }, [searchLocation, filters, applyFilters]);
 
   const formatPrice = (min: number, max: number) => {
     if (min === max) return `$${min.toLocaleString()}`;
@@ -384,7 +384,7 @@ export default function VendorsPage() {
                       <h3 className="text-sm font-medium text-red-800">Error loading vendors</h3>
                       <p className="text-sm text-red-700 mt-1">{error}</p>
                       <button 
-                        onClick={loadVendors}
+                        onClick={() => window.location.reload()}
                         className="text-sm text-red-600 hover:text-red-800 underline mt-2"
                       >
                         Try again
