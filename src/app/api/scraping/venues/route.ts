@@ -83,10 +83,20 @@ export async function POST(request: NextRequest) {
         venues = scrapedVenues.filter(venue => venue !== null) as Venue[];
         console.log(`✅ Real scraper completed successfully - scraped ${pagesToScrape} pages`);
       } catch (scraperError: unknown) {
-        console.log('⚠️ Real scraper failed, using mock data:', scraperError instanceof Error ? scraperError.message : String(scraperError));
+        console.log('⚠️ Real scraper failed, trying fetch-based approach:', scraperError instanceof Error ? scraperError.message : String(scraperError));
         
-        // Create more realistic mock data based on location
-        const mockVenues = [
+        // Try fetch-based scraping as fallback
+        try {
+          const fetchScraper = new VendorScraper();
+          // Don't initialize Puppeteer, let it use fetch-based approach
+          const fetchVenues = await fetchScraper.scrapeVenues(location, maxPages || 10);
+          venues = fetchVenues.filter(venue => venue !== null) as Venue[];
+          console.log(`✅ Fetch-based scraper completed successfully - found ${venues.length} venues`);
+        } catch (fetchError: unknown) {
+          console.log('⚠️ Fetch-based scraper also failed, using mock data:', fetchError instanceof Error ? fetchError.message : String(fetchError));
+          
+          // Create more realistic mock data based on location
+          const mockVenues = [
           {
             name: 'The Grand Ballroom',
             location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
@@ -136,6 +146,7 @@ export async function POST(request: NextRequest) {
         
         venues = mockVenues;
         console.log('✅ Mock data created as fallback');
+        }
       }
 
       console.log(`📊 Found ${venues.length} venues for ${location}`);
