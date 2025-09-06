@@ -3,10 +3,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Calendar,
-  Users,
-  DollarSign,
-  MessageSquare,
   Send,
   CheckCircle,
   X

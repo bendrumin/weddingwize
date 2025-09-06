@@ -27,8 +27,12 @@ export async function POST(request: NextRequest) {
     const analysis = {
       totalSavings: calculateTotalSavings(marketRecommendations),
       recommendations: marketRecommendations,
-      insights: generateSmartInsights(profile, budgetAllocation, marketData),
-      riskFactors: generateRiskFactors(profile, budgetAllocation),
+      insights: generateSmartInsights(profile),
+      riskFactors: [
+        'Venue costs may increase during peak season',
+        'Catering minimums might require additional guests',
+        'Photography packages often have hidden costs'
+      ],
       marketComparison: generateMarketComparison(profile, budgetAllocation, marketData),
       premiumFeatures: {
         vendorMatches: generateVendorMatches(profile),
@@ -63,7 +67,7 @@ function calculateMarketRecommendations(totalBudget: number, marketData: Record<
         currentAllocation: currentAmount,
         recommendedAllocation: marketAmount,
         savings,
-        reasoning: generateCategoryReasoning(category, savings, marketPercentage as number),
+        reasoning: generateCategoryReasoning(category),
         priority: savings > totalBudget * 0.05 ? 'high' : savings > totalBudget * 0.02 ? 'medium' : 'low',
         marketPercentage: Math.round((marketPercentage as number) * 100)
       });
@@ -74,10 +78,10 @@ function calculateMarketRecommendations(totalBudget: number, marketData: Record<
 }
 
 function calculateTotalSavings(recommendations: Record<string, unknown>[]): number {
-  return recommendations.reduce((total, rec) => total + rec.savings, 0);
+  return recommendations.reduce((total, rec) => total + (rec.savings as number || 0), 0);
 }
 
-function generateCategoryReasoning(category: string, savings: number, marketPercentage: number): string {
+function generateCategoryReasoning(category: string): string {
   const reasoningMap = {
     venue: [
       `Consider off-peak dates for 15-20% venue savings`,
@@ -109,7 +113,7 @@ function generateCategoryReasoning(category: string, savings: number, marketPerc
   return reasons[Math.floor(Math.random() * reasons.length)];
 }
 
-function generateSmartInsights(profile: WeddingProfile, budgetAllocation: BudgetAllocation, marketData: Record<string, unknown>): string[] {
+function generateSmartInsights(profile: WeddingProfile): string[] {
   const insights = [];
   const totalBudget = profile.total_budget;
   
@@ -191,62 +195,3 @@ function generateGuestOptimization(profile: WeddingProfile): Record<string, unkn
   };
 }
 
-function generateVenueReasoning(profile: WeddingProfile): string {
-  const reasons = [
-    'Consider off-peak dates or weekday weddings for 15% venue savings',
-    'Outdoor venues can reduce costs by 20% compared to traditional indoor spaces',
-    'All-inclusive packages often provide better value than à la carte options',
-    'Smaller guest counts can open up more affordable venue options',
-    'Non-traditional venues (museums, parks, breweries) often cost 30% less'
-  ];
-  return reasons[Math.floor(Math.random() * reasons.length)];
-}
-
-function generateCateringReasoning(profile: WeddingProfile): string {
-  const reasons = [
-    'Buffet style can reduce catering costs by 10% while maintaining quality',
-    'Brunch weddings typically cost 40% less than dinner receptions',
-    'Local caterers often provide better value than hotel catering',
-    'Family-style service can reduce labor costs by 15%',
-    'Seasonal menu items can reduce food costs by 20%'
-  ];
-  return reasons[Math.floor(Math.random() * reasons.length)];
-}
-
-function generateFlowerReasoning(profile: WeddingProfile): string {
-  const reasons = [
-    'Seasonal flowers can save 30% on floral costs',
-    'DIY centerpieces with local flowers can reduce costs by 50%',
-    'Greenery-focused arrangements cost 40% less than flower-heavy designs',
-    'Reusing ceremony flowers for reception can save 25%',
-    'Local flower farms often provide better prices than florists'
-  ];
-  return reasons[Math.floor(Math.random() * reasons.length)];
-}
-
-function generateInsights(profile: WeddingProfile, budgetAllocation: BudgetAllocation): string[] {
-  const insights = [
-    `Your venue allocation is ${Math.floor(Math.random() * 20) + 5}% above average for your budget range`,
-    'Flower costs can be reduced significantly with seasonal choices',
-    'Consider a brunch wedding to save on catering and venue costs',
-    'Your photography priority aligns well with your budget allocation',
-    'Weekday weddings can save 20-30% on overall costs',
-    'Local vendors often provide better value than destination options',
-    'DIY elements can reduce costs by 15-25% in multiple categories'
-  ];
-  
-  return insights.slice(0, 4); // Return 4 random insights
-}
-
-function generateRiskFactors(profile: WeddingProfile, budgetAllocation: BudgetAllocation): string[] {
-  const risks = [
-    'Venue costs may increase during peak season',
-    'Catering minimums might require additional guests',
-    'Photography packages often have hidden costs',
-    'Weather-dependent outdoor venues may need backup plans',
-    'Vendor availability may be limited during peak months',
-    'Last-minute changes can increase costs significantly'
-  ];
-  
-  return risks.slice(0, 3); // Return 3 random risk factors
-}

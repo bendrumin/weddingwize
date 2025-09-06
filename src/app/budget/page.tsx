@@ -2,22 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { WeddingProfile, BudgetAllocation, BudgetFormData, BudgetFormState } from '@/types';
+import { BudgetFormState } from '@/types';
 import { 
   PieChart, 
   Pie, 
   Cell, 
   ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend 
+  Tooltip
 } from 'recharts';
 import { 
-  DollarSign, 
   TrendingUp, 
   Lightbulb, 
   Target, 
@@ -25,11 +18,7 @@ import {
   Calculator,
   Save,
   Download,
-  Star,
-  AlertCircle,
-  CheckCircle,
-  Users,
-  Calendar
+  AlertCircle
 } from 'lucide-react';
 
 interface BudgetRecommendation {
@@ -177,16 +166,6 @@ export default function BudgetOptimizerPage() {
     })).filter(item => typeof item.value === 'number' && item.value > 0);
   };
 
-  const getComparisonData = () => {
-    if (!aiAnalysis) return [];
-    
-    return aiAnalysis.recommendations.map(rec => ({
-      category: rec.category,
-      current: rec.currentAllocation,
-      recommended: rec.recommendedAllocation,
-      savings: rec.savings
-    }));
-  };
 
   if (!user || !profile) {
     return (
@@ -400,7 +379,7 @@ export default function BudgetOptimizerPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-blue-50 rounded-lg p-3">
                       <div className="text-xs font-medium text-blue-700 mb-2">Market Average</div>
-                      {aiAnalysis.marketComparison.averageSpending.slice(0, 3).map((item, index) => (
+                      {aiAnalysis.marketComparison.averageSpending.slice(0, 3).map((item) => (
                         <div key={item.category} className="flex justify-between text-xs">
                           <span className="text-blue-600 capitalize">{item.category}</span>
                           <span className="font-medium">${item.amount.toLocaleString()}</span>
@@ -409,7 +388,7 @@ export default function BudgetOptimizerPage() {
                     </div>
                     <div className="bg-green-50 rounded-lg p-3">
                       <div className="text-xs font-medium text-green-700 mb-2">Your Allocation</div>
-                      {aiAnalysis.marketComparison.yourSpending.slice(0, 3).map((item, index) => (
+                      {aiAnalysis.marketComparison.yourSpending.slice(0, 3).map((item) => (
                         <div key={item.category} className="flex justify-between text-xs">
                           <span className="text-green-600 capitalize">{item.category}</span>
                           <span className="font-medium">${item.amount.toLocaleString()}</span>

@@ -254,7 +254,7 @@ export interface UserAnalytics {
   id: string;
   user_id: string;
   event_type: string;
-  event_data: Record<string, any>;
+  event_data: Record<string, unknown>;
   session_id: string;
   created_at: Date;
 }

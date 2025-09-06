@@ -1,4 +1,4 @@
-import { WeddingProfile, BudgetAllocation } from '@/types';
+import { WeddingProfile, BudgetAllocation, WeddingStyle } from '@/types';
 
 export interface Vendor {
   id: string;
@@ -154,7 +154,7 @@ export class VendorMatcher {
     if (vendor.featured) {
       reasons.push('Featured vendor');
     }
-    if (vendor.specialties.some(s => profile.wedding_style?.includes(s as string))) {
+    if (vendor.specialties.some(s => profile.wedding_style?.includes(s as WeddingStyle))) {
       reasons.push('Matches your wedding style');
     }
 

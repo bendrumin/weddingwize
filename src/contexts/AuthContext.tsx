@@ -11,10 +11,10 @@ interface AuthContextType {
   profile: WeddingProfile | null;
   loading: boolean;
   signupData: Partial<WeddingProfile> | null;
-  signUp: (email: string, password: string, userData: Partial<WeddingProfile>) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData: Partial<WeddingProfile>) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<WeddingProfile>) => Promise<{ error: any }>;
+  updateProfile: (updates: Partial<WeddingProfile>) => Promise<{ error: Error | null }>;
   clearSignupData: () => void;
 }
 
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { error };
+        return { error: error as Error };
       }
 
       if (data.user) {
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { error: null };
     } catch (error) {
-      return { error };
+      return { error: error as Error };
     }
   };
 
@@ -145,9 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
 
-      return { error };
+      return { error: error as Error };
     } catch (error) {
-      return { error };
+      return { error: error as Error };
     }
   };
 
@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (result.error) {
-        return { error: result.error };
+        return { error: result.error as Error };
       }
 
       // Update local state
@@ -202,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { error: null };
     } catch (error) {
-      return { error };
+      return { error: error as Error };
     }
   };
 

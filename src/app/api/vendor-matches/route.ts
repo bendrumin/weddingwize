@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const matcher = new VendorMatcher(vendors);
     const matches = matcher.findMatches(
       profile as WeddingProfile,
-      budgetAllocation as Record<string, number>,
+      budgetAllocation as unknown as BudgetAllocation,
       category,
       criteria as MatchingCriteria
     ).slice(0, limit);

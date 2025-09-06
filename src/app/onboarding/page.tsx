@@ -76,9 +76,9 @@ export default function OnboardingPage() {
         planningStage: dataSource.planning_stage || 'just_started',
       });
     }
-  }, [user, profile, signupData, router]);
+  }, [user, profile, signupData, router, formData.priorities]);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

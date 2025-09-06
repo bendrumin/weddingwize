@@ -32,23 +32,38 @@ export async function POST(request: NextRequest) {
       }
 
       // Store vendors in database (using insert for now to avoid constraint issues)
-        const vendorData = vendors.map((vendor: Record<string, unknown>) => ({
-        name: vendor.name,
-        category: vendor.category,
-        business_type: vendor.businessType,
-        location: vendor.location,
-        pricing: vendor.pricing,
-        contact: vendor.contact,
-        portfolio_images: vendor.portfolioImages,
-        description: vendor.description,
-        specialties: vendor.specialties,
-        rating: vendor.rating,
-        review_count: vendor.reviewCount,
-        reviews_summary: vendor.reviewsSummary,
-        last_scraped: vendor.lastScraped.toISOString(),
-        verified: vendor.verified,
-        featured: vendor.featured
-      }));
+        const vendorData = vendors
+        .filter((vendor): vendor is NonNullable<typeof vendor> => vendor !== null)
+        .map((vendor) => {
+          // Type guard to check if vendor has additional properties
+          const vendorWithExtras = vendor as typeof vendor & {
+            contact?: Record<string, unknown>;
+            portfolioImages?: string[];
+          };
+          
+          return {
+            name: vendor.name,
+            category: 'venue', // All scraped venues are venue category
+            business_type: 'company' as const,
+            location: vendor.location,
+            pricing: vendor.pricing,
+            contact: vendorWithExtras.contact || {},
+            portfolio_images: vendorWithExtras.portfolioImages || [],
+            description: vendor.description || '',
+            specialties: vendor.specialties || [],
+            rating: vendor.rating,
+            review_count: vendor.reviewCount,
+            reviews_summary: { 
+              overall_sentiment: 'neutral' as const, 
+              common_themes: [], 
+              average_rating: vendor.rating, 
+              total_reviews: vendor.reviewCount 
+            },
+            last_scraped: new Date().toISOString(),
+            verified: false,
+            featured: false
+          };
+        });
 
       // Try to insert vendors, ignoring duplicates
       const { data, error } = await supabase

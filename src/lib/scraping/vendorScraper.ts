@@ -116,7 +116,11 @@ export class VendorScraper {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const detailedInfo = await this.page!.evaluate(() => {
-        const result: Record<string, unknown> = {};
+        const result: {
+          detailedDescription?: string;
+          pricingDetails?: string;
+          capacityDetails?: string;
+        } = {};
         
         // Extract detailed description
         const descriptionSelectors = [
@@ -199,7 +203,11 @@ export class VendorScraper {
         }
         
         // Extract contact information
-        const contactInfo: Record<string, unknown> = {};
+        const contactInfo: {
+          phone?: string;
+          email?: string;
+          website?: string;
+        } = {};
         
         // Phone number
         const phoneRegex = /\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})/;
@@ -245,7 +253,10 @@ export class VendorScraper {
         }
         
         // Extract reviews/testimonials
-        const reviews: Record<string, unknown>[] = [];
+        const reviews: Array<{
+          text: string;
+          author: string;
+        }> = [];
         const reviewSelectors = [
           '[data-testid="reviews"] .review',
           '.reviews .review',
@@ -938,7 +949,8 @@ export class VendorScraper {
                   (venue as Record<string, unknown>).portfolioImages = detailedInfo.portfolioImages;
                 }
                 if (detailedInfo.contact) {
-                  (venue as Record<string, unknown>).contact = { ...(venue as Record<string, unknown>).contact, ...detailedInfo.contact };
+                  const existingContact = (venue as Record<string, unknown>).contact as Record<string, unknown> || {};
+                  (venue as Record<string, unknown>).contact = { ...existingContact, ...detailedInfo.contact };
                 }
                 if (detailedInfo.pricingDetails) {
                   (venue as Record<string, unknown>).pricingDetails = detailedInfo.pricingDetails;
@@ -1018,7 +1030,7 @@ export class VendorScraper {
             });
 
             if (nextButtonClicked) {
-              await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for new content
+              await new Promise(resolve => setTimeout(resolve, 5000)); // Wait longer for new content and database operations
               console.log(`✅ Successfully navigated to page ${page}`);
               
               // Extract venues from this page using the same logic
@@ -1113,7 +1125,7 @@ export class VendorScraper {
                       amenities: [],
                       specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
                     };
-                  } catch (error) {
+                  } catch {
                     return null;
                   }
                 }).filter(venue => venue !== null && venue.name !== 'Unknown Venue');
@@ -1145,6 +1157,9 @@ export class VendorScraper {
               }));
               venues.push(...venuesWithDebug);
               console.log(`✅ Added ${pageVenues.length} venues from page ${page}`);
+              
+              // Add delay after processing each page to ensure database operations complete
+              await new Promise(resolve => setTimeout(resolve, 2000));
             } else {
               console.log('🚫 No more pages available');
               break;

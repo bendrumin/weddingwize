@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { location, maxVenues } = body;
+    const { location, maxVenues, maxPages } = body;
 
     console.log(`🔍 Starting scrape for ${location}...`);
 
@@ -78,9 +78,10 @@ export async function POST(request: NextRequest) {
       try {
         scraper = new VendorScraper();
         await scraper.initialize();
-        const scrapedVenues = await scraper.scrapeVenues(location, 50);
+        const pagesToScrape = maxPages || 10;
+        const scrapedVenues = await scraper.scrapeVenues(location, pagesToScrape);
         venues = scrapedVenues.filter(venue => venue !== null) as Venue[];
-        console.log('✅ Real scraper completed successfully');
+        console.log(`✅ Real scraper completed successfully - scraped ${pagesToScrape} pages`);
       } catch (scraperError: unknown) {
         console.log('⚠️ Real scraper failed, using mock data:', scraperError instanceof Error ? scraperError.message : String(scraperError));
         venues = [

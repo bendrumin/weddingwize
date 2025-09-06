@@ -208,7 +208,7 @@ export default function VendorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, applyFilters]);
 
   useEffect(() => {
     // Set default location if profile is available
@@ -216,14 +216,14 @@ export default function VendorsPage() {
       setSearchLocation(profile.location.city);
     }
     loadVendors();
-  }, [profile?.location?.city, selectedCategory]);
+  }, [profile?.location?.city, selectedCategory, loadVendors]);
 
   // Apply filters when search location or filters change
   useEffect(() => {
     if (allVendors.length > 0) {
       applyFilters();
     }
-  }, [searchLocation, filters, allVendors.length]);
+  }, [searchLocation, filters, allVendors.length, applyFilters]);
 
   const formatPrice = (min: number, max: number) => {
     if (min === max) return `$${min.toLocaleString()}`;

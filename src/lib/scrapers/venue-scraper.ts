@@ -1,7 +1,7 @@
 // lib/scrapers/venue-scraper.ts
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { setTimeout } from 'timers/promises';
 
 // Types matching your Supabase schema
@@ -41,16 +41,10 @@ interface ScrapedVenue {
   venue_type?: string[];
 }
 
-interface ScrapingTarget {
-  name: string;
-  baseUrl: string;
-  searchUrl: (location: string) => string;
-  scraper: (page: Page, location: string) => Promise<ScrapedVenue[]>;
-}
 
 class VenueScraper {
   private browser: Browser | null = null;
-  private supabase: any;
+  private supabase: SupabaseClient;
   private userAgents: string[];
   
   constructor(supabaseUrl: string, supabaseKey: string) {

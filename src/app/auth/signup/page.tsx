@@ -77,7 +77,7 @@ export default function SignUpPage() {
       } else {
         router.push('/onboarding');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

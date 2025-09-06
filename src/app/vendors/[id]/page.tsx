@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   ArrowLeft,
@@ -764,10 +765,11 @@ export default function VendorProfilePage() {
               {vendor.portfolioImages && vendor.portfolioImages.length > 0 ? (
                 <div className="relative">
                   <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden relative">
-                    <img
+                    <Image
                       src={vendor.portfolioImages[currentImageIndex]}
                       alt={`${vendor.name} portfolio ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     
                     {vendor.portfolioImages.length > 1 && (
