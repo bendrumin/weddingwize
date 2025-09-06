@@ -1132,6 +1132,7 @@ export class VendorScraper {
                 pricing: venue?.pricing || { min: 0, max: 0, currency: 'USD', description: '' },
                 description: venue?.description || '',
                 capacity: venue?.capacity || { min: 0, max: 0, description: '' },
+                venueType: venue?.venueType || 'Wedding Venue',
                 debug: {
                   cardText: '',
                   hasDescription: false,
