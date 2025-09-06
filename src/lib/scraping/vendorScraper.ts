@@ -868,7 +868,7 @@ export class VendorScraper {
         const limitedVenues = currentVenues.slice(0, maxVenuesPerState);
         console.log(`✅ Found ${currentVenues.length} total venues in ${state}, keeping ${limitedVenues.length}`);
         
-        allVenues.push(...limitedVenues);
+        allVenues.push(...limitedVenues.filter(venue => venue !== null));
         totalScraped += limitedVenues.length;
         
         // Progress update

@@ -2,6 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VendorScraper } from '@/lib/scraping/vendorScraper';
 import { createClient } from '@supabase/supabase-js';
 
+interface Venue {
+  name: string;
+  location?: {
+    city?: string;
+    state?: string;
+    full?: string;
+  };
+  rating?: number;
+  reviewCount?: number;
+  url?: string;
+  imageUrl?: string;
+  source?: string;
+  pricing?: {
+    min?: number;
+    max?: number;
+    currency?: string;
+    description?: string;
+  };
+  description?: string;
+  venueType?: string;
+  amenities?: string[];
+  specialties?: string[];
+  capacity?: {
+    min?: number;
+    max?: number;
+    description?: string;
+  };
+  detailedDescription?: string;
+  pricingDetails?: string;
+  capacityDetails?: string;
+  reviews?: Array<{
+    rating?: number;
+    comment?: string;
+    author?: string;
+    date?: string;
+  }>;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactWebsite?: string;
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!

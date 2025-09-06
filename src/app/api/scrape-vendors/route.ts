@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     
     try {
       if (category === 'venue') {
-        vendors = await scraper.scrapeVenues(location, maxPages);
+        vendors = await scraper.scrapeAllVenues(maxPages);
       } else {
         throw new Error(`Unsupported category: ${category}. Only 'venue' is currently supported.`);
       }
@@ -34,7 +34,26 @@ export async function POST(request: NextRequest) {
       // Store vendors in database (using insert for now to avoid constraint issues)
         const vendorData = vendors
         .filter((vendor): vendor is NonNullable<typeof vendor> => vendor !== null)
-        .map((vendor) => {
+        .map((vendor: {
+          name: string;
+          location?: {
+            city?: string;
+            state?: string;
+            full?: string;
+          };
+          pricing?: {
+            min?: number;
+            max?: number;
+            currency?: string;
+            description?: string;
+          };
+          description?: string;
+          specialties?: string[];
+          rating?: number;
+          reviewCount?: number;
+          contact?: Record<string, unknown>;
+          portfolioImages?: string[];
+        }) => {
           // Type guard to check if vendor has additional properties
           const vendorWithExtras = vendor as typeof vendor & {
             contact?: Record<string, unknown>;
