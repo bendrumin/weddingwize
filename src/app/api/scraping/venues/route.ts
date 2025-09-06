@@ -82,6 +82,12 @@ export async function POST(request: NextRequest) {
         const scrapedVenues = await scraper.scrapeVenues(location, pagesToScrape);
         venues = scrapedVenues.filter(venue => venue !== null) as Venue[];
         console.log(`✅ Real scraper completed successfully - scraped ${pagesToScrape} pages`);
+        
+        // If no venues found, try fallback methods
+        if (venues.length === 0) {
+          console.log('⚠️ No venues found with real scraper, trying fallback methods...');
+          throw new Error('No venues found with real scraper');
+        }
       } catch (scraperError: unknown) {
         console.log('⚠️ Real scraper failed, trying fetch-based approach:', scraperError instanceof Error ? scraperError.message : String(scraperError));
         
