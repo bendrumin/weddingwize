@@ -59,8 +59,17 @@ export default function ScrapingDashboard() {
     success: boolean;
     message: string;
     venuesScraped: number;
-    batchInfo: any;
-    summary: any;
+    batchInfo: {
+      currentBatch: string;
+      nextStartIndex: number | null;
+      isComplete: boolean;
+      totalStates: number;
+    } | null;
+    summary: {
+      statesProcessed: number;
+      venuesPerState: number;
+      totalVenues: number;
+    } | null;
     timestamp: string;
   } | null>(null);
   const [results, setResults] = useState<{

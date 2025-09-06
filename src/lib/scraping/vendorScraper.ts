@@ -584,7 +584,7 @@ export class VendorScraper {
       'virginia', 'washington', 'west-virginia', 'wisconsin', 'wyoming'
     ];
     
-    let allVenues: Venue[] = [];
+    const allVenues: Venue[] = [];
     let totalScraped = 0;
     const maxVenuesPerState = 20; // Reduced for Vercel compatibility
     const maxStatesPerRun = 10; // Process 10 states per run to stay within timeouts
@@ -712,7 +712,7 @@ export class VendorScraper {
         });
         
         // Try to get more venues by paginating through pages
-        let currentVenues = stateVenues;
+        const currentVenues = stateVenues;
         let page = 2;
         const maxPagesPerState = 3; // Limit to 3 pages per state to avoid overwhelming
         
@@ -908,7 +908,7 @@ export class VendorScraper {
       .replace(/[^a-z0-9-]/g, '');
   }
 
-  async scrapeAllVenuesWithFetch(maxPages: number = 50): Promise<Venue[]> {
+  async scrapeAllVenuesWithFetch(_maxPages: number = 50): Promise<Venue[]> {
     console.log(`🌐 Using fetch-based master scraping...`);
     
     try {
@@ -947,7 +947,7 @@ export class VendorScraper {
     }
   }
 
-  async scrapeWithFetch(location: string, maxPages: number = 50): Promise<Venue[]> {
+  async scrapeWithFetch(location: string, _maxPages: number = 50): Promise<Venue[]> {
     console.log(`🌐 Using fetch-based scraping for ${location}...`);
     
     try {

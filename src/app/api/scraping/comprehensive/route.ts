@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       
       if (uniqueVenues.length > 0) {
         // Save venues to database (matching existing schema)
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('vendors')
           .upsert(
             uniqueVenues.map(venue => ({
