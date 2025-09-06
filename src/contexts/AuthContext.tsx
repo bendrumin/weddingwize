@@ -64,8 +64,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error fetching profile:', error);
-      } else {
+      } else if (data) {
         setProfile(data);
+      } else {
+        // Profile doesn't exist, create a default one
+        console.log('Creating default profile for user');
+        const { data: newProfile, error: createError } = await supabase
+          .from('wedding_profiles')
+          .insert({
+            id: userId,
+            partner1_name: '',
+            partner2_name: '',
+            wedding_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+            total_budget: 25000,
+            guest_count: 100,
+            location: { city: '', state: '', zipcode: '' },
+            wedding_style: [],
+            priorities: {
+              venue: 5,
+              photography: 4,
+              catering: 4,
+              flowers: 3,
+              music: 3,
+              planning: 5,
+              attire: 3,
+              transportation: 2,
+              other: 2,
+            },
+            planning_stage: 'just_started',
+            onboarding_completed: false,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating default profile:', createError);
+        } else {
+          setProfile(newProfile);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -86,7 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        // Create wedding profile
+        // Wait a moment for the session to be established
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Create wedding profile with explicit user context
         const { error: profileError } = await supabase
           .from('wedding_profiles')
           .insert({
@@ -96,7 +135,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (profileError) {
           console.error('Error creating profile:', profileError);
-          return { error: profileError };
+          // Don't return error here - let the user sign up and create profile later
+          console.log('Profile will be created on first login');
         }
       }
 

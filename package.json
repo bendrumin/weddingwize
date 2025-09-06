@@ -11,6 +11,7 @@
     "setup-db": "node scripts/setup-database.js",
     "update-gender-neutral": "node scripts/update-gender-neutral.js",
     "fix-rls": "node scripts/fix-rls.js",
+    "fix-rls-comprehensive": "node scripts/fix-rls-comprehensive.js",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
