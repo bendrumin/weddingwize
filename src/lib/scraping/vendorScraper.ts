@@ -108,14 +108,14 @@ export class VendorScraper {
     try {
       console.log(`🔍 Scraping detailed info from: ${venueUrl}`);
       
-      await this.page.goto(venueUrl, {
+      await this.page!.goto(venueUrl, {
         waitUntil: 'networkidle2',
         timeout: 30000
       });
       
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const detailedInfo = await this.page.evaluate(() => {
+      const detailedInfo = await this.page!.evaluate(() => {
         const result: any = {};
         
         // Extract detailed description
@@ -896,20 +896,22 @@ export class VendorScraper {
       if (venues.length > 0) {
         console.log('🎯 Final venue names:');
         venues.slice(0, 5).forEach((venue, i) => {
-          console.log(`  ${i + 1}. ${venue.name}`);
+          console.log(`  ${i + 1}. ${venue?.name || 'Unknown'}`);
         });
       }
       
       // Debug: Show first venue's debug info
       if (venues.length > 0) {
         const firstVenue = venues[0];
-        console.log(`🔍 Debug info for first venue:`, {
-          name: firstVenue.name,
-          debug: firstVenue.debug,
-          hasDescription: !!firstVenue.description,
-          hasCapacity: !!firstVenue.capacity?.description,
-          hasPricing: !!firstVenue.pricing?.description
-        });
+        if (firstVenue) {
+          console.log(`🔍 Debug info for first venue:`, {
+            name: firstVenue.name,
+            debug: firstVenue.debug,
+            hasDescription: !!firstVenue.description,
+            hasCapacity: !!firstVenue.capacity?.description,
+            hasPricing: !!firstVenue.pricing?.description
+          });
+        }
       }
 
       // Enhance venues with detailed information (optional - can be enabled/disabled)
@@ -919,43 +921,43 @@ export class VendorScraper {
         
         for (let i = 0; i < Math.min(venues.length, 5); i++) { // Limit to first 5 venues for performance
           const venue = venues[i];
-          if (venue.url && venue.url.includes('theknot.com')) {
+          if (venue && venue.url && venue.url.includes('theknot.com')) {
             try {
-              console.log(`📋 Scraping details for: ${venue.name}`);
-              const detailedInfo = await this.scrapeVenueDetails(venue.url);
+              console.log(`📋 Scraping details for: ${venue?.name || 'Unknown'}`);
+              const detailedInfo = await this.scrapeVenueDetails(venue!.url);
               
               if (detailedInfo) {
                 // Merge detailed information
                 if (detailedInfo.detailedDescription) {
-                  venue.description = detailedInfo.detailedDescription;
+                  (venue as any).description = detailedInfo.detailedDescription;
                 }
                 if (detailedInfo.amenities && detailedInfo.amenities.length > 0) {
-                  venue.amenities = detailedInfo.amenities;
+                  (venue as any).amenities = detailedInfo.amenities;
                 }
                 if (detailedInfo.portfolioImages && detailedInfo.portfolioImages.length > 0) {
-                  venue.portfolioImages = detailedInfo.portfolioImages;
+                  (venue as any).portfolioImages = detailedInfo.portfolioImages;
                 }
                 if (detailedInfo.contact) {
-                  venue.contact = { ...venue.contact, ...detailedInfo.contact };
+                  (venue as any).contact = { ...(venue as any).contact, ...detailedInfo.contact };
                 }
                 if (detailedInfo.pricingDetails) {
-                  venue.pricingDetails = detailedInfo.pricingDetails;
+                  (venue as any).pricingDetails = detailedInfo.pricingDetails;
                 }
                 if (detailedInfo.capacityDetails) {
-                  venue.capacityDetails = detailedInfo.capacityDetails;
+                  (venue as any).capacityDetails = detailedInfo.capacityDetails;
                 }
                 if (detailedInfo.reviews && detailedInfo.reviews.length > 0) {
-                  venue.reviews = detailedInfo.reviews;
+                  (venue as any).reviews = detailedInfo.reviews;
                 }
                 
-                console.log(`✅ Enhanced ${venue.name} with detailed info`);
+                console.log(`✅ Enhanced ${venue?.name || 'Unknown'} with detailed info`);
               }
               
               // Add delay between detailed scraping to avoid rate limiting
               await new Promise(resolve => setTimeout(resolve, 3000));
               
             } catch (error) {
-              console.error(`❌ Error enhancing venue ${venue.name}:`, error);
+              console.error(`❌ Error enhancing venue ${venue?.name || 'Unknown'}:`, error);
             }
           }
         }
@@ -1117,7 +1119,17 @@ export class VendorScraper {
                 }).filter(venue => venue !== null && venue.name !== 'Unknown Venue');
               });
               
-              venues.push(...pageVenues);
+              // Add debug property to each venue
+              const venuesWithDebug = pageVenues.map(venue => ({
+                ...venue,
+                debug: {
+                  cardText: '',
+                  hasDescription: false,
+                  hasCapacity: false,
+                  hasPricing: false
+                }
+              }));
+              venues.push(...venuesWithDebug);
               console.log(`✅ Added ${pageVenues.length} venues from page ${page}`);
             } else {
               console.log('🚫 No more pages available');
@@ -1133,7 +1145,7 @@ export class VendorScraper {
       // Debug URLs for first few venues
       console.log('🔗 Sample URLs extracted:');
       venues.slice(0, 3).forEach((venue, index) => {
-        console.log(`  ${index + 1}. ${venue.name}: ${venue.url}`);
+        console.log(`  ${index + 1}. ${venue?.name || 'Unknown'}: ${venue?.url || 'No URL'}`);
       });
 
       return venues;
