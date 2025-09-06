@@ -62,6 +62,18 @@ export interface CategoryPriorities {
   other: number;
 }
 
+export interface BudgetAllocation {
+  venue: number;
+  catering: number;
+  photography: number;
+  flowers: number;
+  music: number;
+  attire: number;
+  transportation: number;
+  planning: number;
+  other: number;
+}
+
 export interface Vendor {
   id: string;
   name: string;

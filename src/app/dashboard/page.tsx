@@ -164,9 +164,11 @@ export default function DashboardPage() {
             <p className="text-pink-100 mb-4">
               Let AI optimize your budget allocation for maximum value
             </p>
-            <button className="bg-white text-pink-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-              Optimize Budget
-            </button>
+            <Link href="/budget">
+              <button className="bg-white text-pink-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                Optimize Budget
+              </button>
+            </Link>
           </div>
 
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
