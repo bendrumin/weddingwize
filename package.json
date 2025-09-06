@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "setup": "node scripts/setup.js",
+    "setup-db": "node scripts/setup-database.js",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
