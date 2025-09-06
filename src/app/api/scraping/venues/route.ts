@@ -95,48 +95,52 @@ export async function POST(request: NextRequest) {
         } catch (fetchError: unknown) {
           console.log('⚠️ Fetch-based scraper also failed, using mock data:', fetchError instanceof Error ? fetchError.message : String(fetchError));
           
-          // Create more realistic mock data based on location
+          // Create location-specific mock data
+          const locationParts = location.split(', ');
+          const city = locationParts[0] || 'Unknown';
+          const state = locationParts[1] || 'Unknown';
+          
           const mockVenues = [
           {
-            name: 'The Grand Ballroom',
-            location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-            rating: 4.8,
-            reviewCount: 127,
-            url: 'https://example.com/venue1',
+            name: `${city} Grand Ballroom`,
+            location: { city, state, full: location },
+            rating: 4.7,
+            reviewCount: 89,
+            url: `https://example.com/${city.toLowerCase()}-ballroom`,
             imageUrl: '',
             source: 'mock',
             pricing: { min: 2500, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
-            description: 'Elegant ballroom venue perfect for weddings and special events',
+            description: `Elegant ballroom venue in ${location} perfect for weddings and special events`,
             capacity: { min: 100, max: 300, description: 'Up to 300 Guests' },
             venueType: 'Ballroom',
             amenities: ['Wedding Reception', 'Ceremony', 'Corporate Events', 'Catering Available'],
             specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
           },
           {
-            name: 'Garden Pavilion', 
-            location: { city: 'St. Paul', state: 'MN', full: 'St. Paul, MN' },
-            rating: 4.6,
-            reviewCount: 89,
-            url: 'https://example.com/venue2',
+            name: `${city} Garden Pavilion`, 
+            location: { city, state, full: location },
+            rating: 4.5,
+            reviewCount: 67,
+            url: `https://example.com/${city.toLowerCase()}-garden`,
             imageUrl: '',
             source: 'mock',
             pricing: { min: 1800, max: 3500, currency: 'USD', description: '$$ – Affordable' },
-            description: 'Beautiful outdoor garden venue with covered pavilion',
+            description: `Beautiful outdoor garden venue in ${location} with covered pavilion`,
             capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
             venueType: 'Garden Venue',
             amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
             specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
           },
           {
-            name: 'Historic Manor House',
-            location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-            rating: 4.9,
-            reviewCount: 156,
-            url: 'https://example.com/venue3',
+            name: `${city} Historic Manor`,
+            location: { city, state, full: location },
+            rating: 4.8,
+            reviewCount: 124,
+            url: `https://example.com/${city.toLowerCase()}-manor`,
             imageUrl: '',
             source: 'mock',
             pricing: { min: 3000, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-            description: 'Charming historic manor with elegant indoor and outdoor spaces',
+            description: `Charming historic manor in ${location} with elegant indoor and outdoor spaces`,
             capacity: { min: 75, max: 250, description: 'Up to 250 Guests' },
             venueType: 'Historic Venue',
             amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Indoor/Outdoor'],
