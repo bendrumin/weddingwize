@@ -49,7 +49,7 @@ export default function OnboardingPage() {
     { value: 'just_started', label: 'Just Started' },
     { value: 'venue_hunting', label: 'Venue Hunting' },
     { value: 'vendor_selection', label: 'Vendor Selection' },
-    { value: 'detailed_planning', label: 'Detailed Planning' },
+    { value: 'details_planning', label: 'Detailed Planning' },
     { value: 'final_preparations', label: 'Final Preparations' },
   ];
 
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
         city: formData.city,
         state: formData.state,
         zipcode: formData.zipcode,
-        coordinates: null, // Will be geocoded later
+        coordinates: undefined, // Will be geocoded later
       };
 
       const profileData: Partial<WeddingProfile> = {

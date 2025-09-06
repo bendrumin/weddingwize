@@ -803,7 +803,7 @@ export class VendorScraper {
             }
 
             // Extract amenities and features from the card
-            const amenities = [];
+            const amenities: string[] = [];
             const amenitySelectors = [
               '.amenity',
               '.feature',
@@ -996,7 +996,7 @@ export class VendorScraper {
               const buttons = document.querySelectorAll('button, a');
               for (const button of buttons) {
                 const text = button.textContent?.toLowerCase().trim();
-                if (text && (text.includes('next') || text.includes('→') || text.includes('>')) && button.offsetParent !== null) {
+                if (text && (text.includes('next') || text.includes('→') || text.includes('>')) && (button as HTMLElement).offsetParent !== null) {
                   (button as HTMLElement).click();
                   return true;
                 }
@@ -1006,7 +1006,7 @@ export class VendorScraper {
               const pageNumbers = document.querySelectorAll('button, a');
               for (const pageNum of pageNumbers) {
                 const text = pageNum.textContent?.trim();
-                if (text === page.toString() && pageNum.offsetParent !== null) {
+                if (text === page.toString() && (pageNum as HTMLElement).offsetParent !== null) {
                   (pageNum as HTMLElement).click();
                   return true;
                 }

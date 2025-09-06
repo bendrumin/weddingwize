@@ -231,8 +231,8 @@ export class VenueProfileScraper {
         // Extract media
         const media = {
           primaryImage: getText('.primary-image img, .hero-image img, [class*="primary-image"] img') || '',
-          portfolioImages: Array.from(document.querySelectorAll('.portfolio img, .gallery img, [class*="portfolio"] img')).map(img => img.src || ''),
-          reviewPhotos: Array.from(document.querySelectorAll('.review-photo img, .review-image img, [class*="review-photo"] img')).map(img => img.src || '')
+          portfolioImages: Array.from(document.querySelectorAll('.portfolio img, .gallery img, [class*="portfolio"] img')).map(img => (img as HTMLImageElement).src || ''),
+          reviewPhotos: Array.from(document.querySelectorAll('.review-photo img, .review-image img, [class*="review-photo"] img')).map(img => (img as HTMLImageElement).src || '')
         };
 
         return {
