@@ -167,6 +167,18 @@ export interface BudgetFormData {
   other: number;
 }
 
+export interface BudgetFormState {
+  venue: number;
+  catering: number;
+  photography: number;
+  flowers: number;
+  music: number;
+  attire: number;
+  transportation: number;
+  planning: number;
+  other: number;
+}
+
 export interface VendorMatch {
   id: string;
   user_id: string;

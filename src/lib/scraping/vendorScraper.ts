@@ -1131,6 +1131,7 @@ export class VendorScraper {
                 source: venue?.source || 'theknot.com',
                 pricing: venue?.pricing || { min: 0, max: 0, currency: 'USD', description: '' },
                 description: venue?.description || '',
+                capacity: venue?.capacity || { min: 0, max: 0, description: '' },
                 debug: {
                   cardText: '',
                   hasDescription: false,
