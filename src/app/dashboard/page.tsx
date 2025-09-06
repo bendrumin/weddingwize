@@ -3,7 +3,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Heart, DollarSign, Users, Calendar, MapPin, Sparkles, Settings, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { Heart, DollarSign, Users, Calendar, MapPin, Sparkles, Settings, LogOut, Crown } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, profile, loading, signOut } = useAuth();
@@ -167,6 +168,24 @@ export default function DashboardPage() {
             <Link href="/budget">
               <button className="bg-white text-pink-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                 Optimize Budget
+              </button>
+            </Link>
+          </div>
+
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white/20 p-3 rounded-lg">
+                <Users className="h-6 w-6" />
+              </div>
+              <Crown className="h-6 w-6 opacity-80" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Vendor Marketplace</h3>
+            <p className="text-purple-100 mb-4">
+              AI-matched vendors based on your style and budget
+            </p>
+            <Link href="/vendors">
+              <button className="bg-white text-purple-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                Find Vendors
               </button>
             </Link>
           </div>

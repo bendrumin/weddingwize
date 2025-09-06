@@ -1,98 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Custom slider styles */
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
+/* Custom styles */
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
-.slider::-webkit-slider-track {
-  background: #e5e7eb;
-  height: 8px;
-  border-radius: 4px;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  background: #3b82f6;
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.slider::-webkit-slider-thumb:hover {
-  background: #2563eb;
-  transform: scale(1.1);
-}
-
-.slider::-moz-range-track {
-  background: #e5e7eb;
-  height: 8px;
-  border-radius: 4px;
-  border: none;
-}
-
-.slider::-moz-range-thumb {
-  background: #3b82f6;
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.slider::-moz-range-thumb:hover {
-  background: #2563eb;
-  transform: scale(1.1);
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Animation classes */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+/* Custom animations */
+@keyframes spin {
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Custom component styles */
+.gradient-bg {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+}
+
+.card-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Wedding theme colors */
+.text-wedding-pink {
+  color: #ec4899;
+}
+
+.bg-wedding-pink {
+  background-color: #ec4899;
+}
+
+.border-wedding-pink {
+  border-color: #ec4899;
+}
+
+.hover\:bg-wedding-pink:hover {
+  background-color: #ec4899;
 }

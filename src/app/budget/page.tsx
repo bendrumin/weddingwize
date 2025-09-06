@@ -27,7 +27,9 @@ import {
   Download,
   Star,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Users,
+  Calendar
 } from 'lucide-react';
 
 interface BudgetRecommendation {
@@ -44,6 +46,28 @@ interface AIInalysis {
   recommendations: BudgetRecommendation[];
   insights: string[];
   riskFactors: string[];
+  marketComparison: {
+    location: string;
+    averageSpending: Array<{category: string; amount: number; percentage: number}>;
+    yourSpending: Array<{category: string; amount: number; percentage: number}>;
+  };
+  premiumFeatures: {
+    vendorMatches: {
+      available: number;
+      averageRating: number;
+      priceRange: {min: number; max: number};
+    };
+    timelineOptimization: {
+      monthsUntilWedding: number;
+      criticalTasks: number;
+      estimatedSavings: number;
+    };
+    guestOptimization: {
+      rsvpRate: number;
+      estimatedNoShows: number;
+      potentialSavings: number;
+    };
+  };
 }
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'];
@@ -365,6 +389,66 @@ export default function BudgetOptimizerPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Market Comparison */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900 flex items-center">
+                    <Target className="h-4 w-4 text-blue-500 mr-2" />
+                    Market Comparison - {aiAnalysis.marketComparison.location}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <div className="text-xs font-medium text-blue-700 mb-2">Market Average</div>
+                      {aiAnalysis.marketComparison.averageSpending.slice(0, 3).map((item, index) => (
+                        <div key={item.category} className="flex justify-between text-xs">
+                          <span className="text-blue-600 capitalize">{item.category}</span>
+                          <span className="font-medium">${item.amount.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <div className="text-xs font-medium text-green-700 mb-2">Your Allocation</div>
+                      {aiAnalysis.marketComparison.yourSpending.slice(0, 3).map((item, index) => (
+                        <div key={item.category} className="flex justify-between text-xs">
+                          <span className="text-green-600 capitalize">{item.category}</span>
+                          <span className="font-medium">${item.amount.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Premium Features Teaser */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-purple-800 flex items-center">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Premium Insights
+                    </h3>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Upgrade to Unlock
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div className="bg-white rounded-lg p-2 text-center">
+                      <div className="text-lg font-bold text-purple-600">{aiAnalysis.premiumFeatures.vendorMatches.available}</div>
+                      <div className="text-xs text-gray-500">Vendors</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-2 text-center">
+                      <div className="text-lg font-bold text-purple-600">{aiAnalysis.premiumFeatures.timelineOptimization.criticalTasks}</div>
+                      <div className="text-xs text-gray-500">Tasks</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-2 text-center">
+                      <div className="text-lg font-bold text-purple-600">${aiAnalysis.premiumFeatures.guestOptimization.potentialSavings}</div>
+                      <div className="text-xs text-gray-500">Savings</div>
+                    </div>
+                  </div>
+                  
+                  <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-2 px-4 rounded-lg font-medium text-sm hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+                    Upgrade to Premium - $149/month
+                  </button>
                 </div>
               </div>
             ) : (

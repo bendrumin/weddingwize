@@ -328,3 +328,159 @@ export interface BillingInfo {
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
 }
+
+// Enhanced venue profile interfaces
+export interface VenueProfileData {
+  // Basic Information
+  basic: {
+    name: string; // "The Grand 1858 at Minneapolis Event Centers"
+    tagline: string; // "1st Building built in Mpls in 1858 | A GRAND venue"
+    description: string; // Main venue description paragraph
+    address: string; // "212 2nd Street SE, Minneapolis, MN"
+    neighborhood: string; // "Saint Anthony Main District"
+    businessType: string; // "Wedding venue"
+    languages: string[]; // ["English", "Spanish"]
+  };
+
+  // Capacity & Guest Information
+  capacity: {
+    guestRange: string; // "201 to 250 guests"
+    maxCapacity: number; // 300 (from description)
+    capacityDescription: string; // "Up to 250"
+  };
+
+  // Services Offered
+  services: {
+    ceremoniesAndReceptions: boolean; // "Holds ceremonies and receptions"
+    ceremonyTypes: string[]; // ["Civil Union", "Commitment Ceremony", "Elopement", etc.]
+  };
+
+  // Contact & Team Information
+  contact: {
+    teamName: string; // "Minneapolis Event Centers Wedding Team"
+    role: string; // "COORDINATOR"
+    responseTime: string; // "Typically responds within 24h"
+    contactForm: boolean; // Has contact form
+  };
+
+  // Awards & Recognition
+  awards: {
+    awardCount: number; // 7
+    awardType: string; // "AWARD WINNER (7X)"
+    awardSource: string; // "Thanks to recommendations from couples on The Knot"
+  };
+
+  // Pricing Information
+  pricing: {
+    available: boolean; // false for "No pricing details yet"
+    details: string; // "No pricing details yet" or actual pricing
+    requiresContact: boolean; // true
+  };
+
+  // Amenities & Features
+  amenities: {
+    ceremonyArea: boolean;
+    coveredOutdoorsSpace: boolean;
+    dressingRoom: boolean;
+    handicapAccessible: boolean;
+    indoorEventSpace: boolean;
+    liabilityInsurance: boolean;
+    outdoorEventSpace: boolean;
+    receptionArea: boolean;
+    wirelessInternet: boolean;
+  };
+
+  // Venue Settings & Style
+  settings: {
+    ballroom: boolean;
+    garden: boolean;
+    historicVenue: boolean;
+    industrialWarehouse: boolean;
+    trees: boolean;
+  };
+
+  // Service Offerings Categories
+  serviceOfferings: {
+    barAndDrinks: {
+      available: boolean;
+      barRental: boolean;
+    };
+    cakesAndDesserts: {
+      available: boolean;
+      cupcakes: boolean;
+      otherDesserts: boolean;
+    };
+    foodAndCatering: {
+      available: boolean;
+    };
+    planning: {
+      available: boolean;
+      seHablaEspanol: boolean;
+      weddingDesign: boolean;
+    };
+    rentalsAndEquipment: {
+      available: boolean;
+      tents: boolean;
+    };
+    serviceStaff: {
+      available: boolean;
+    };
+    transportation: {
+      available: boolean;
+      shuttleService: boolean;
+    };
+  };
+
+  // Reviews & Ratings
+  reviews: {
+    overallRating: number; // 4.9
+    totalReviews: number; // 130
+    ratingBreakdown: {
+      fiveStars: number;
+      fourStars: number;
+      threeStars: number;
+      twoStars: number;
+      oneStar: number;
+    };
+    aiSummary: string; // AI-generated review summary
+    sortOptions: string[]; // ["Top reviews", "Newest first", etc.]
+  };
+
+  // Individual Reviews
+  individualReviews: VenueReview[];
+
+  // Team Information
+  team: {
+    teamName: string;
+    role: string;
+    description: string;
+    teamMessage: string;
+  };
+
+  // Media & Visual Content
+  media: {
+    primaryImage: string;
+    portfolioImages: string[];
+    reviewPhotos: string[];
+  };
+
+  // URL & Source Information
+  metadata: {
+    sourceUrl: string;
+    source: string; // "theknot"
+    scrapedAt: Date;
+    pageType: string; // "venue_profile"
+  };
+}
+
+export interface VenueReview {
+  author: string;
+  rating: number;
+  date: string;
+  content: string;
+  highlighted: boolean;
+  venueResponse?: {
+    date: string;
+    content: string;
+  };
+}
