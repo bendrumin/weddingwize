@@ -10,6 +10,7 @@
     "setup": "node scripts/setup.js",
     "setup-db": "node scripts/setup-database.js",
     "update-gender-neutral": "node scripts/update-gender-neutral.js",
+    "fix-rls": "node scripts/fix-rls.js",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
