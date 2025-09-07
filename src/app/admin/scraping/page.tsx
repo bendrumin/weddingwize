@@ -87,7 +87,7 @@ export default function ScrapingDashboard() {
       if (catError) {
         addLog(`❌ Error fetching categories: ${catError.message}`);
       } else {
-        const uniqueCategories = [...new Set(categories?.map(v => v.category) || [])];
+        const uniqueCategories = [...new Set((categories as { category: string }[] | null)?.map(v => v.category) || [])];
         addLog(`🔍 Found categories: ${uniqueCategories.join(', ')}`);
       }
       
