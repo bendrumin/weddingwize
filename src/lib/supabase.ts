@@ -9,12 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Client-side Supabase client (singleton pattern to prevent multiple instances)
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
 // Extend Window interface to include our custom property
 declare global {
   interface Window {
-    __supabase_client?: ReturnType<typeof createClient>;
+    __supabase_client?: ReturnType<typeof createClient<Database>>;
   }
 }
 
@@ -27,7 +27,7 @@ export const supabase = (() => {
         return window.__supabase_client;
       }
       
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
@@ -39,7 +39,7 @@ export const supabase = (() => {
       window.__supabase_client = supabaseInstance;
     } else {
       // Server-side: create new instance
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
