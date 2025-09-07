@@ -143,11 +143,10 @@ export default function ScrapingDashboard() {
     setComprehensiveResults(null);
 
     try {
-      const response = await fetch('/api/scraping/comprehensive', {
+      const response = await fetch('/api/scraping/admin', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'test-secret-key-123'}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           startIndex,

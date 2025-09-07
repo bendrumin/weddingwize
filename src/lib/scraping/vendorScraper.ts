@@ -50,6 +50,23 @@ interface Venue {
   };
 }
 
+interface VenueDetails {
+  detailedDescription?: string;
+  amenities?: string[];
+  pricingDetails?: string;
+  capacityDetails?: string;
+  contact?: {
+    website?: string;
+    phone?: string;
+    email?: string;
+  };
+  portfolioImages?: string[];
+  reviews?: Array<{
+    text: string;
+    author: string;
+  }>;
+}
+
 export class VendorScraper {
   private browser: Browser | null = null;
   private page: Page | null = null;
@@ -124,7 +141,7 @@ export class VendorScraper {
     }
   }
 
-  async scrapeVenueDetails(venueUrl: string): Promise<Partial<Venue> | null> {
+  async scrapeVenueDetails(venueUrl: string): Promise<VenueDetails | null> {
     try {
       console.log(`🔍 Scraping detailed info from: ${venueUrl}`);
       
@@ -657,10 +674,32 @@ export class VendorScraper {
               const locationText = locationMatch ? locationMatch[1] : 'Unknown, Unknown';
               const [city, state] = locationText.split(', ').map(s => s.trim());
               
-              // Extract URL
+              // Extract URL - construct it from venue name since The Knot doesn't provide direct links
               const linkElement = card.querySelector('a[href*="/marketplace/"]');
-              const relativeUrl = linkElement?.getAttribute('href') || '';
-              const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
+              let url = '';
+              
+              if (linkElement) {
+                const relativeUrl = linkElement.getAttribute('href') || '';
+                url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
+              } else {
+                // Construct URL from venue name and location
+                const venueSlug = name
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+                  .replace(/\s+/g, '-') // Replace spaces with hyphens
+                  .replace(/-+/g, '-') // Replace multiple hyphens with single
+                  .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+                
+                const locationSlug = locationText
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s,]/g, '') // Remove special characters except comma
+                  .replace(/\s*,\s*/g, '-') // Replace comma and spaces with hyphen
+                  .replace(/\s+/g, '-') // Replace remaining spaces with hyphens
+                  .replace(/-+/g, '-') // Replace multiple hyphens with single
+                  .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+                
+                url = `https://www.theknot.com/marketplace/${venueSlug}-${locationSlug}`;
+              }
               
               // Extract image
               const imageElement = card.querySelector('img');
@@ -674,8 +713,11 @@ export class VendorScraper {
               const pricingMatch = cardText.match(/(\$\$+[^$]*)/);
               const pricingText = pricingMatch ? pricingMatch[1] : 'Unknown';
               
-              // Create description
-              const description = `Beautiful venue in ${locationText}`;
+              // Create a basic description from available info
+              // The Knot cards don't contain full descriptions, so we'll create a meaningful one
+              const capacityText = capacity !== 'Unknown' ? ` with ${capacity}` : '';
+              const pricingDesc = pricingText !== 'Unknown' ? ` (${pricingText})` : '';
+              const description = `${name} is a beautiful wedding venue in ${locationText}${capacityText}${pricingDesc}. Perfect for your special day with ${reviewCount} reviews and a ${rating}-star rating.`;
               
               return {
                 name,
@@ -801,9 +843,32 @@ export class VendorScraper {
                     const locationText = locationMatch ? locationMatch[1] : 'Unknown, Unknown';
                     const [city, state] = locationText.split(', ').map(s => s.trim());
                     
+                    // Extract URL - construct it from venue name since The Knot doesn't provide direct links
                     const linkElement = card.querySelector('a[href*="/marketplace/"]');
-                    const relativeUrl = linkElement?.getAttribute('href') || '';
-                    const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
+                    let url = '';
+                    
+                    if (linkElement) {
+                      const relativeUrl = linkElement.getAttribute('href') || '';
+                      url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.theknot.com${relativeUrl}`;
+                    } else {
+                      // Construct URL from venue name and location
+                      const venueSlug = name
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+                        .replace(/\s+/g, '-') // Replace spaces with hyphens
+                        .replace(/-+/g, '-') // Replace multiple hyphens with single
+                        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+                      
+                      const locationSlug = locationText
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s,]/g, '') // Remove special characters except comma
+                        .replace(/\s*,\s*/g, '-') // Replace comma and spaces with hyphen
+                        .replace(/\s+/g, '-') // Replace remaining spaces with hyphens
+                        .replace(/-+/g, '-') // Replace multiple hyphens with single
+                        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+                      
+                      url = `https://www.theknot.com/marketplace/${venueSlug}-${locationSlug}`;
+                    }
                     
                     const imageElement = card.querySelector('img');
                     const imageUrl = imageElement?.src || imageElement?.getAttribute('data-src') || '';
@@ -814,7 +879,10 @@ export class VendorScraper {
                     const pricingMatch = cardText.match(/(\$\$+[^$]*)/);
                     const pricingText = pricingMatch ? pricingMatch[1] : 'Unknown';
                     
-                    const description = `Beautiful venue in ${locationText}`;
+                    // Create a basic description from available info
+                    const capacityText = capacity !== 'Unknown' ? ` with ${capacity}` : '';
+                    const pricingDesc = pricingText !== 'Unknown' ? ` (${pricingText})` : '';
+                    const description = `${name} is a beautiful wedding venue in ${locationText}${capacityText}${pricingDesc}. Perfect for your special day with ${reviewCount} reviews and a ${rating}-star rating.`;
                     
                     return {
                       name,
@@ -895,7 +963,69 @@ export class VendorScraper {
     
     console.log(`📊 Venues by state:`, stateSummary);
     
-    return allVenues;
+    // Enhance venues with detailed information from individual pages
+    console.log(`🔍 Enhancing ${allVenues.length} venues with detailed information...`);
+    const enhancedVenues: Venue[] = [];
+    
+    for (let i = 0; i < allVenues.length; i++) {
+      const venue = allVenues[i];
+      try {
+        // Only enhance venues that have valid The Knot URLs
+        if (venue.url && venue.url.includes('theknot.com/marketplace/') && !venue.url.includes('wedding-reception-venues')) {
+          console.log(`🔍 [${i + 1}/${allVenues.length}] Enhancing ${venue.name}...`);
+          
+          const details = await this.scrapeVenueDetails(venue.url);
+          if (details) {
+            // Merge detailed information with basic venue data
+            const enhancedVenue: Venue = {
+              ...venue,
+              description: details.detailedDescription || venue.description,
+              amenities: details.amenities || venue.amenities,
+              portfolioImages: details.portfolioImages || venue.portfolioImages,
+              contact: {
+                ...venue.contact,
+                ...details.contact
+              },
+              // Add new fields if they exist
+              ...(details.capacityDetails && venue.capacity && {
+                capacity: {
+                  min: venue.capacity.min,
+                  max: venue.capacity.max,
+                  description: details.capacityDetails
+                }
+              }),
+              ...(details.pricingDetails && venue.pricing && {
+                pricing: {
+                  min: venue.pricing.min,
+                  max: venue.pricing.max,
+                  currency: venue.pricing.currency,
+                  description: details.pricingDetails
+                }
+              })
+            };
+            
+            enhancedVenues.push(enhancedVenue);
+            console.log(`✅ Enhanced ${venue.name} with ${details.amenities?.length || 0} amenities, ${details.portfolioImages?.length || 0} images`);
+          } else {
+            enhancedVenues.push(venue);
+            console.log(`⚠️ Could not enhance ${venue.name}, using basic data`);
+          }
+          
+          // Add delay between detailed scraping to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          enhancedVenues.push(venue);
+          console.log(`⏭️ Skipping enhancement for ${venue.name} (no valid venue URL)`);
+        }
+      } catch (error) {
+        console.error(`❌ Error enhancing ${venue.name}:`, error);
+        enhancedVenues.push(venue); // Use basic data if enhancement fails
+      }
+    }
+    
+    console.log(`✅ Enhanced ${enhancedVenues.length} venues with detailed information`);
+    
+    return enhancedVenues;
   }
 
   private formatLocationForUrl(location: string): string {

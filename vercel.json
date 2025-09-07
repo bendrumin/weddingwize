@@ -8,6 +8,15 @@
   "functions": {
     "src/app/api/scraping/comprehensive/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/scraping/admin/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/scraping/venues/route.ts": {
+      "maxDuration": 60
     }
+  },
+  "env": {
+    "VERCEL": "1"
   }
 }
