@@ -179,122 +179,9 @@ export async function POST(request: NextRequest) {
           allVenues = fetchVenues.filter(venue => venue !== null) as Venue[];
           console.log(`✅ Fetch-based master scraper completed successfully - found ${allVenues.length} total venues`);
         } catch (fetchError: unknown) {
-          console.log('⚠️ Fetch-based scraper also failed, using comprehensive mock data:', fetchError instanceof Error ? fetchError.message : String(fetchError));
+          console.error('❌ All scraping methods failed:', fetchError instanceof Error ? fetchError.message : String(fetchError));
           
-          // Use comprehensive mock data with venues from multiple states
-          allVenues = [
-            // New York venues
-            {
-              name: 'The Plaza Hotel',
-              location: { city: 'New York', state: 'NY', full: 'New York, NY' },
-              rating: 4.9,
-              reviewCount: 234,
-              url: 'https://example.com/plaza-hotel',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 8000, max: 15000, currency: 'USD', description: '$$$$$ – Very Expensive' },
-              description: 'Iconic luxury hotel in Manhattan perfect for elegant weddings',
-              capacity: { min: 50, max: 500, description: 'Up to 500 Guests' },
-              venueType: 'Hotel',
-              amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
-            },
-            {
-              name: 'Brooklyn Botanic Garden',
-              location: { city: 'Brooklyn', state: 'NY', full: 'Brooklyn, NY' },
-              rating: 4.7,
-              reviewCount: 156,
-              url: 'https://example.com/brooklyn-botanic',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 3000, max: 8000, currency: 'USD', description: '$$$ – Moderate' },
-              description: 'Beautiful botanical garden setting for outdoor weddings',
-              capacity: { min: 25, max: 200, description: 'Up to 200 Guests' },
-              venueType: 'Garden Venue',
-              amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
-            },
-            // California venues
-            {
-              name: 'The Beverly Hills Hotel',
-              location: { city: 'Beverly Hills', state: 'CA', full: 'Beverly Hills, CA' },
-              rating: 4.8,
-              reviewCount: 189,
-              url: 'https://example.com/beverly-hills-hotel',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 6000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
-              description: 'Luxury hotel in Beverly Hills with stunning event spaces',
-              capacity: { min: 50, max: 300, description: 'Up to 300 Guests' },
-              venueType: 'Hotel',
-              amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
-            },
-            {
-              name: 'Napa Valley Vineyard Estate',
-              location: { city: 'Napa', state: 'CA', full: 'Napa, CA' },
-              rating: 4.9,
-              reviewCount: 267,
-              url: 'https://example.com/napa-vineyard',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 4000, max: 10000, currency: 'USD', description: '$$$ – Moderate' },
-              description: 'Stunning vineyard estate in Napa Valley wine country',
-              capacity: { min: 30, max: 150, description: 'Up to 150 Guests' },
-              venueType: 'Vineyard',
-              amenities: ['Wedding Reception', 'Ceremony', 'Wine Tasting', 'Scenic Views'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Wine Country Events']
-            },
-            // Texas venues
-            {
-              name: 'The Driskill Hotel',
-              location: { city: 'Austin', state: 'TX', full: 'Austin, TX' },
-              rating: 4.6,
-              reviewCount: 143,
-              url: 'https://example.com/driskill-hotel',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 2500, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-              description: 'Historic luxury hotel in downtown Austin',
-              capacity: { min: 40, max: 250, description: 'Up to 250 Guests' },
-              venueType: 'Historic Hotel',
-              amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
-            },
-            // Florida venues
-            {
-              name: 'The Breakers Palm Beach',
-              location: { city: 'Palm Beach', state: 'FL', full: 'Palm Beach, FL' },
-              rating: 4.8,
-              reviewCount: 198,
-              url: 'https://example.com/breakers-palm-beach',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 5000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
-              description: 'Luxury oceanfront resort in Palm Beach',
-              capacity: { min: 50, max: 400, description: 'Up to 400 Guests' },
-              venueType: 'Resort',
-              amenities: ['Wedding Reception', 'Ceremony', 'Ocean Views', 'Full Service'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Beach Weddings']
-            },
-            // Minnesota venues
-            {
-              name: 'The Grand 1858 at Minneapolis Event Centers',
-              location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-              rating: 4.9,
-              reviewCount: 130,
-              url: 'https://example.com/grand-1858',
-              imageUrl: '',
-              source: 'mock',
-              pricing: { min: 1000, max: 3000, currency: 'USD', description: '$$ – Affordable' },
-              description: 'Historic event center in Minneapolis with elegant spaces',
-              capacity: { min: 50, max: 250, description: 'Up to 250 Guests' },
-              venueType: 'Event Center',
-              amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
-              specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
-            }
-          ];
-          console.log(`✅ Comprehensive mock data created - ${allVenues.length} venues from multiple states`);
+          throw new Error('Failed to scrape venues from all attempted methods');
         }
       }
 
@@ -302,111 +189,16 @@ export async function POST(request: NextRequest) {
       const filteredVenues = filterVenuesByLocation(allVenues, location);
       console.log(`📊 Found ${allVenues.length} total venues, ${filteredVenues.length} match location: ${location}`);
 
-      // Use filtered venues, or fall back to comprehensive mock data if no matches
+      // Use filtered venues
       let venues = filteredVenues;
       
       if (venues.length === 0) {
-        console.log('⚠️ No venues found for location, using comprehensive mock data as fallback');
-        const mockVenues = [
-          // New York venues
-          {
-            name: 'The Plaza Hotel',
-            location: { city: 'New York', state: 'NY', full: 'New York, NY' },
-            rating: 4.9,
-            reviewCount: 234,
-            url: 'https://example.com/plaza-hotel',
-            imageUrl: '',
-            source: 'mock',
-            pricing: { min: 8000, max: 15000, currency: 'USD', description: '$$$$$ – Very Expensive' },
-            description: 'Iconic luxury hotel in Manhattan perfect for elegant weddings',
-            capacity: { min: 50, max: 500, description: 'Up to 500 Guests' },
-            venueType: 'Hotel',
-            amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
-            specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
-          },
-          {
-            name: 'Brooklyn Botanic Garden',
-            location: { city: 'Brooklyn', state: 'NY', full: 'Brooklyn, NY' },
-            rating: 4.7,
-            reviewCount: 156,
-            url: 'https://example.com/brooklyn-botanic',
-            imageUrl: '',
-            source: 'mock',
-            pricing: { min: 3000, max: 8000, currency: 'USD', description: '$$$ – Moderate' },
-            description: 'Beautiful botanical garden setting for outdoor weddings',
-            capacity: { min: 25, max: 200, description: 'Up to 200 Guests' },
-            venueType: 'Garden Venue',
-            amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
-            specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
-          },
-          // California venues
-          {
-            name: 'The Beverly Hills Hotel',
-            location: { city: 'Beverly Hills', state: 'CA', full: 'Beverly Hills, CA' },
-            rating: 4.8,
-            reviewCount: 189,
-            url: 'https://example.com/beverly-hills-hotel',
-            imageUrl: '',
-            source: 'mock',
-            pricing: { min: 6000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
-            description: 'Luxury hotel in Beverly Hills with stunning event spaces',
-            capacity: { min: 50, max: 300, description: 'Up to 300 Guests' },
-            venueType: 'Hotel',
-            amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
-            specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
-          },
-          {
-            name: 'Napa Valley Vineyard Estate',
-            location: { city: 'Napa', state: 'CA', full: 'Napa, CA' },
-            rating: 4.9,
-            reviewCount: 267,
-            url: 'https://example.com/napa-vineyard',
-            imageUrl: '',
-            source: 'mock',
-            pricing: { min: 4000, max: 10000, currency: 'USD', description: '$$$ – Moderate' },
-            description: 'Stunning vineyard estate in Napa Valley wine country',
-            capacity: { min: 30, max: 150, description: 'Up to 150 Guests' },
-            venueType: 'Vineyard',
-            amenities: ['Wedding Reception', 'Ceremony', 'Wine Tasting', 'Scenic Views'],
-            specialties: ['Wedding Reception', 'Ceremony', 'Wine Country Events']
-          },
-          // Texas venues
-          {
-            name: 'The Driskill Hotel',
-            location: { city: 'Austin', state: 'TX', full: 'Austin, TX' },
-            rating: 4.6,
-            reviewCount: 143,
-            url: 'https://example.com/driskill-hotel',
-            imageUrl: '',
-            source: 'mock',
-            pricing: { min: 2500, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-            description: 'Historic luxury hotel in downtown Austin',
-            capacity: { min: 40, max: 250, description: 'Up to 250 Guests' },
-            venueType: 'Historic Hotel',
-            amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
-            specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
-          },
-          // Florida venues
-          {
-            name: 'The Breakers Palm Beach',
-            location: { city: 'Palm Beach', state: 'FL', full: 'Palm Beach, FL' },
-            rating: 4.8,
-            reviewCount: 198,
-            url: 'https://example.com/breakers-palm-beach',
-            imageUrl: '',
-            source: 'mock',
-            pricing: { min: 5000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
-            description: 'Luxury oceanfront resort in Palm Beach',
-            capacity: { min: 50, max: 400, description: 'Up to 400 Guests' },
-            venueType: 'Resort',
-            amenities: ['Wedding Reception', 'Ceremony', 'Ocean Views', 'Full Service'],
-            specialties: ['Wedding Reception', 'Ceremony', 'Beach Weddings']
-          }
-        ];
-        
-        // Filter the mock data by location
-        venues = filterVenuesByLocation(mockVenues, location);
-        console.log(`✅ Using ${venues.length} mock venues for location: ${location}`);
+        console.log('⚠️ No venues found for location');
+        return NextResponse.json({
+          success: false,
+          error: `No venues found for location: ${location}`,
+          venues: []
+        }, { status: 404 });
       }
 
       // Limit venues if maxVenues is specified (for testing)
@@ -687,7 +479,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Return mock status for now - implement actual status checking as needed
+    // Return status - implement actual status checking as needed
     return NextResponse.json({ 
       status: 'ready',
       location,

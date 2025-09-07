@@ -1,6 +1,6 @@
 // lib/scraping/vendorScraper.ts
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { VenueProfileData, VenueReview } from '../../types';
+import { VenueProfileData, VenueReview } from '../../types/index.js';
 
 interface Venue {
   name: string;
@@ -1030,127 +1030,6 @@ export class VendorScraper {
     }
   }
 
-  private getComprehensiveMockVenues(): Venue[] {
-    console.log('🎭 Returning comprehensive mock venues from multiple states...');
-    
-    // Generate unique timestamp for this batch
-    const timestamp = Date.now();
-    
-    const venues: Venue[] = [
-      // New York venues
-      {
-        name: `The Plaza Hotel ${timestamp}`,
-        location: { city: 'New York', state: 'NY', full: 'New York, NY' },
-        rating: 4.9,
-        reviewCount: 234,
-        url: 'https://example.com/plaza-hotel',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 8000, max: 15000, currency: 'USD', description: '$$$$$ – Very Expensive' },
-        description: 'Iconic luxury hotel in Manhattan perfect for elegant weddings',
-        capacity: { min: 50, max: 500, description: 'Up to 500 Guests' },
-        venueType: 'Hotel',
-        amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
-      },
-      {
-        name: `Brooklyn Botanic Garden ${timestamp}`,
-        location: { city: 'Brooklyn', state: 'NY', full: 'Brooklyn, NY' },
-        rating: 4.7,
-        reviewCount: 156,
-        url: 'https://example.com/brooklyn-botanic',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 3000, max: 8000, currency: 'USD', description: '$$$ – Moderate' },
-        description: 'Beautiful botanical garden setting for outdoor weddings',
-        capacity: { min: 25, max: 200, description: 'Up to 200 Guests' },
-        venueType: 'Garden Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
-      },
-      // California venues
-      {
-        name: `The Beverly Hills Hotel ${timestamp}`,
-        location: { city: 'Beverly Hills', state: 'CA', full: 'Beverly Hills, CA' },
-        rating: 4.8,
-        reviewCount: 189,
-        url: 'https://example.com/beverly-hills-hotel',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 6000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
-        description: 'Luxury hotel in Beverly Hills with stunning event spaces',
-        capacity: { min: 50, max: 300, description: 'Up to 300 Guests' },
-        venueType: 'Hotel',
-        amenities: ['Wedding Reception', 'Ceremony', 'Luxury Accommodations', 'Full Service'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
-      },
-      {
-        name: `Napa Valley Vineyard Estate ${timestamp}`,
-        location: { city: 'Napa', state: 'CA', full: 'Napa, CA' },
-        rating: 4.9,
-        reviewCount: 267,
-        url: 'https://example.com/napa-vineyard',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 4000, max: 10000, currency: 'USD', description: '$$$ – Moderate' },
-        description: 'Stunning vineyard estate in Napa Valley wine country',
-        capacity: { min: 30, max: 150, description: 'Up to 150 Guests' },
-        venueType: 'Vineyard',
-        amenities: ['Wedding Reception', 'Ceremony', 'Wine Tasting', 'Scenic Views'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Wine Country Events']
-      },
-      // Texas venues
-      {
-        name: `The Driskill Hotel ${timestamp}`,
-        location: { city: 'Austin', state: 'TX', full: 'Austin, TX' },
-        rating: 4.6,
-        reviewCount: 143,
-        url: 'https://example.com/driskill-hotel',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 2500, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-        description: 'Historic luxury hotel in downtown Austin',
-        capacity: { min: 40, max: 250, description: 'Up to 250 Guests' },
-        venueType: 'Historic Hotel',
-        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
-      },
-      // Florida venues
-      {
-        name: `The Breakers Palm Beach ${timestamp}`,
-        location: { city: 'Palm Beach', state: 'FL', full: 'Palm Beach, FL' },
-        rating: 4.8,
-        reviewCount: 198,
-        url: 'https://example.com/breakers-palm-beach',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 5000, max: 12000, currency: 'USD', description: '$$$$ – Expensive' },
-        description: 'Luxury oceanfront resort in Palm Beach',
-        capacity: { min: 50, max: 400, description: 'Up to 400 Guests' },
-        venueType: 'Resort',
-        amenities: ['Wedding Reception', 'Ceremony', 'Ocean Views', 'Full Service'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Beach Weddings']
-      },
-      // Minnesota venues (real data)
-      {
-        name: `The Grand 1858 at Minneapolis Event Centers ${timestamp}`,
-        location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-        rating: 4.9,
-        reviewCount: 130,
-        url: 'https://example.com/grand-1858',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 1000, max: 3000, currency: 'USD', description: '$$ – Affordable' },
-        description: 'Historic event center in Minneapolis with elegant spaces',
-        capacity: { min: 50, max: 250, description: 'Up to 250 Guests' },
-        venueType: 'Event Center',
-        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Full Service'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
-      }
-    ];
-    
-    return venues;
-  }
 
   private parseVenuesFromHTML(html: string, location: string): Venue[] {
     console.log('🔍 Parsing venues from HTML...');
@@ -1162,18 +1041,18 @@ export class VendorScraper {
       // Look for common patterns in The Knot's HTML structure
       
       // Pattern 1: Look for venue cards with data attributes
-      const venueCardPattern = /<div[^>]*data-venue[^>]*>.*?<\/div>/gs;
+      const venueCardPattern = /<div[^>]*data-venue[^>]*>.*?<\/div>/g;
       const venueCards = html.match(venueCardPattern) || [];
       
       // Pattern 2: Look for JSON data in script tags
-      const jsonPattern = /window\.__INITIAL_STATE__\s*=\s*({.*?});/s;
+      const jsonPattern = /window\.__INITIAL_STATE__\s*=\s*({.*?});/;
       const jsonMatch = html.match(jsonPattern);
       
       // Pattern 3: Look for venue listings in structured data
       const structuredDataPattern = /"@type":\s*"LocalBusiness"[^}]*"name":\s*"([^"]*)"[^}]*"address":\s*"([^"]*)"/g;
       const structuredMatches = [...html.matchAll(structuredDataPattern)];
       
-      console.log(`🔍 Found ${venueCards.length} venue cards, ${structuredMatches.length} structured data entries`);
+      console.log(`🔍 Found ${venueCards.length} venue cards, ${structuredMatches.length} structured data entries, ${jsonMatch ? 'JSON data found' : 'no JSON data'}`);
       
       // If we found structured data, parse it
       if (structuredMatches.length > 0) {
