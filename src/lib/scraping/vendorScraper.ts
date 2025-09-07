@@ -1,6 +1,6 @@
 // lib/scraping/vendorScraper.ts
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { VenueProfileData, VenueReview } from '../../types/index.js';
+import { VenueProfileData, VenueReview } from '../../types/index';
 
 interface Venue {
   name: string;
@@ -72,14 +72,14 @@ export class VendorScraper {
   private page: Page | null = null;
 
   async initialize() {
-    console.log('🚀 Initializing Puppeteer browser...');
+    console.log('🚀 Initializing stealth Puppeteer browser...');
     
     // Check if we're in Vercel environment
     const isVercel = process.env.VERCEL === '1';
     console.log(`🌐 Environment: ${isVercel ? 'Vercel' : 'Local'}`);
     
     try {
-      // For Vercel deployment, use optimized settings
+      // Enhanced stealth configuration
       const launchOptions = isVercel ? {
         headless: true,
         args: [
@@ -92,22 +92,83 @@ export class VendorScraper {
           '--disable-features=VizDisplayCompositor',
           '--window-size=1920x1080',
           '--single-process',
-          '--no-zygote'
+          '--no-zygote',
+          // Stealth enhancements
+          '--disable-blink-features=AutomationControlled',
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-images',
+          '--disable-javascript',
+          '--disable-default-apps',
+          '--disable-sync',
+          '--disable-translate',
+          '--hide-scrollbars',
+          '--mute-audio',
+          '--no-first-run',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-field-trial-config',
+          '--disable-back-forward-cache',
+          '--disable-ipc-flooding-protection',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-domain-reliability',
+          '--disable-component-extensions-with-background-pages',
+          '--disable-default-apps',
+          '--disable-extensions',
+          '--disable-sync',
+          '--disable-translate',
+          '--hide-scrollbars',
+          '--mute-audio',
+          '--no-first-run',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-field-trial-config',
+          '--disable-back-forward-cache',
+          '--disable-ipc-flooding-protection',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-domain-reliability',
+          '--disable-component-extensions-with-background-pages'
         ]
       } : {
         headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-          '--window-size=1920x1080'
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+          '--window-size=1920x1080',
+          // Stealth enhancements
+          '--disable-blink-features=AutomationControlled',
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-images',
+          '--disable-javascript',
+          '--disable-default-apps',
+          '--disable-sync',
+          '--disable-translate',
+          '--hide-scrollbars',
+          '--mute-audio',
+          '--no-first-run',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-field-trial-config',
+          '--disable-back-forward-cache',
+          '--disable-ipc-flooding-protection',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-domain-reliability',
+          '--disable-component-extensions-with-background-pages'
         ]
       };
 
       this.browser = await puppeteer.launch(launchOptions);
-      console.log('✅ Browser launched successfully');
+      console.log('✅ Stealth browser launched successfully');
     } catch (error: unknown) {
       console.error('❌ Failed to launch browser:', error);
       // Instead of throwing, set browser to null and handle gracefully
@@ -121,17 +182,65 @@ export class VendorScraper {
         this.page = await this.browser.newPage();
         console.log('✅ New page created');
         
-        // Set user agent to avoid detection
-        await this.page.setUserAgent(
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        );
-        console.log('✅ User agent set');
-    
-    // Set viewport
-        await this.page.setViewport({ width: 1920, height: 1080 });
-        console.log('✅ Viewport set');
+        // Enhanced stealth user agents (rotate randomly)
+        const userAgents = [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
+        ];
         
-        console.log('✅ Puppeteer browser initialized');
+        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+        await this.page.setUserAgent(randomUserAgent);
+        console.log('✅ Random user agent set:', randomUserAgent);
+        
+        // Set realistic viewport
+        await this.page.setViewport({ 
+          width: 1920 + Math.floor(Math.random() * 100), 
+          height: 1080 + Math.floor(Math.random() * 100) 
+        });
+        console.log('✅ Random viewport set');
+        
+        // Set extra headers to look more like a real browser
+        await this.page.setExtraHTTPHeaders({
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1'
+        });
+        console.log('✅ Extra headers set');
+        
+        // Remove webdriver property
+        await this.page.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined,
+          });
+        });
+        
+        // Mock plugins
+        await this.page.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, 'plugins', {
+            get: () => [1, 2, 3, 4, 5],
+          });
+        });
+        
+        // Mock languages
+        await this.page.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en'],
+          });
+        });
+        
+        console.log('✅ Stealth properties configured');
+        console.log('✅ Stealth Puppeteer browser initialized');
       } catch (error: unknown) {
         console.error('❌ Failed to create page or set properties:', error);
         this.browser = null;
@@ -145,12 +254,25 @@ export class VendorScraper {
     try {
       console.log(`🔍 Scraping detailed info from: ${venueUrl}`);
       
+      // Add random delay before navigation
+      const preDelay = Math.random() * 2000 + 1000; // 1-3 seconds
+      console.log(`⏳ Pre-navigation delay: ${Math.round(preDelay)}ms`);
+      await new Promise(resolve => setTimeout(resolve, preDelay));
+      
       await this.page!.goto(venueUrl, {
         waitUntil: 'networkidle2',
         timeout: 30000
       });
       
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulate human-like behavior
+      await this.page!.mouse.move(100, 100);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await this.page!.mouse.move(200, 200);
+      
+      // Wait for page to load with random delay
+      const postDelay = Math.random() * 2000 + 1000; // 1-3 seconds
+      console.log(`⏳ Post-navigation delay: ${Math.round(postDelay)}ms`);
+      await new Promise(resolve => setTimeout(resolve, postDelay));
       
       const detailedInfo = await this.page!.evaluate(() => {
         const result: {
@@ -590,6 +712,10 @@ export class VendorScraper {
 
     console.log(`🔍 Starting comprehensive scrape of venues from all 50 states...`);
     
+    // Set timeout for Vercel (4 minutes to be safe)
+    const timeout = process.env.VERCEL === '1' ? 240000 : 300000; // 4 min for Vercel, 5 min for local
+    const startTime = Date.now();
+    
     // All 50 US states with their URL-friendly names
     const allStates = [
       'alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut', 'delaware',
@@ -603,8 +729,8 @@ export class VendorScraper {
     
     const allVenues: Venue[] = [];
     let totalScraped = 0;
-    const maxVenuesPerState = 20; // Reduced for Vercel compatibility
-    const maxStatesPerRun = 10; // Process 10 states per run to stay within timeouts
+    const maxVenuesPerState = process.env.VERCEL === '1' ? 10 : 5; // Optimized for Vercel
+    const maxStatesPerRun = process.env.VERCEL === '1' ? 5 : 2; // Process more states in Vercel
     
     // Get states to process (for batch processing)
     const startIndex = parseInt(process.env.STATE_START_INDEX || '0');
@@ -615,19 +741,37 @@ export class VendorScraper {
     console.log(`🎯 Will scrape up to ${maxVenuesPerState} venues from each state`);
     
     for (let i = 0; i < statesToProcess.length; i++) {
+      // Check timeout
+      if (Date.now() - startTime > timeout) {
+        console.log(`⏰ Timeout reached (${timeout/1000}s), stopping scraping to avoid Vercel timeout`);
+        break;
+      }
+      
       const state = statesToProcess[i];
       try {
         console.log(`🌐 [${i + 1}/${statesToProcess.length}] Scraping venues from ${state}...`);
         const baseUrl = `https://www.theknot.com/marketplace/wedding-reception-venues/${state}`;
         
-        // Navigate to the state-specific page
+        // Add random delay before navigation (optimized for Vercel)
+        const preDelay = process.env.VERCEL === '1' ? Math.random() * 2000 + 1000 : Math.random() * 1000 + 500;
+        console.log(`⏳ Pre-navigation delay: ${Math.round(preDelay)}ms`);
+        await new Promise(resolve => setTimeout(resolve, preDelay));
+        
+        // Navigate to the state-specific page with stealth options
         await this.page.goto(baseUrl, { 
           waitUntil: 'networkidle2',
           timeout: 30000 
         });
 
-        // Wait for page to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Simulate human-like behavior
+        await this.page.mouse.move(100, 100);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await this.page.mouse.move(200, 200);
+        
+        // Wait for page to load with random delay (optimized for Vercel)
+        const postDelay = process.env.VERCEL === '1' ? Math.random() * 2000 + 1000 : Math.random() * 1000 + 500;
+        console.log(`⏳ Post-navigation delay: ${Math.round(postDelay)}ms`);
+        await new Promise(resolve => setTimeout(resolve, postDelay));
         console.log(`📋 Page loaded for ${state}, extracting venue data...`);
 
         // Extract venue data from this state
@@ -756,7 +900,7 @@ export class VendorScraper {
         // Try to get more venues by paginating through pages
         const currentVenues = stateVenues;
         let page = 2;
-        const maxPagesPerState = 3; // Limit to 3 pages per state to avoid overwhelming
+        const maxPagesPerState = 1; // Limit to 1 page per state for testing
         
         while (currentVenues.length < maxVenuesPerState && page <= maxPagesPerState) {
           try {
@@ -942,8 +1086,8 @@ export class VendorScraper {
         // Progress update
         console.log(`📊 Progress: ${totalScraped} total venues collected so far`);
         
-        // Add delay between states to avoid rate limiting (longer for Vercel)
-        const delay = process.env.NODE_ENV === 'production' ? 8000 : 3000;
+        // Add delay between states to avoid rate limiting (optimized for Vercel)
+        const delay = process.env.VERCEL === '1' ? 2000 : 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
         
       } catch (error) {
@@ -963,69 +1107,11 @@ export class VendorScraper {
     
     console.log(`📊 Venues by state:`, stateSummary);
     
-    // Enhance venues with detailed information from individual pages
-    console.log(`🔍 Enhancing ${allVenues.length} venues with detailed information...`);
-    const enhancedVenues: Venue[] = [];
+    // Skip enhancement for now to avoid timeouts in admin route
+    console.log(`⏭️ Skipping venue enhancement to avoid timeout - returning basic venue data`);
+    console.log(`📊 Total venues returning: ${allVenues.length}`);
     
-    for (let i = 0; i < allVenues.length; i++) {
-      const venue = allVenues[i];
-      try {
-        // Only enhance venues that have valid The Knot URLs
-        if (venue.url && venue.url.includes('theknot.com/marketplace/') && !venue.url.includes('wedding-reception-venues')) {
-          console.log(`🔍 [${i + 1}/${allVenues.length}] Enhancing ${venue.name}...`);
-          
-          const details = await this.scrapeVenueDetails(venue.url);
-          if (details) {
-            // Merge detailed information with basic venue data
-            const enhancedVenue: Venue = {
-              ...venue,
-              description: details.detailedDescription || venue.description,
-              amenities: details.amenities || venue.amenities,
-              portfolioImages: details.portfolioImages || venue.portfolioImages,
-              contact: {
-                ...venue.contact,
-                ...details.contact
-              },
-              // Add new fields if they exist
-              ...(details.capacityDetails && venue.capacity && {
-                capacity: {
-                  min: venue.capacity.min,
-                  max: venue.capacity.max,
-                  description: details.capacityDetails
-                }
-              }),
-              ...(details.pricingDetails && venue.pricing && {
-                pricing: {
-                  min: venue.pricing.min,
-                  max: venue.pricing.max,
-                  currency: venue.pricing.currency,
-                  description: details.pricingDetails
-                }
-              })
-            };
-            
-            enhancedVenues.push(enhancedVenue);
-            console.log(`✅ Enhanced ${venue.name} with ${details.amenities?.length || 0} amenities, ${details.portfolioImages?.length || 0} images`);
-          } else {
-            enhancedVenues.push(venue);
-            console.log(`⚠️ Could not enhance ${venue.name}, using basic data`);
-          }
-          
-          // Add delay between detailed scraping to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          enhancedVenues.push(venue);
-          console.log(`⏭️ Skipping enhancement for ${venue.name} (no valid venue URL)`);
-        }
-      } catch (error) {
-        console.error(`❌ Error enhancing ${venue.name}:`, error);
-        enhancedVenues.push(venue); // Use basic data if enhancement fails
-      }
-    }
-    
-    console.log(`✅ Enhanced ${enhancedVenues.length} venues with detailed information`);
-    
-    return enhancedVenues;
+    return allVenues;
   }
 
   private formatLocationForUrl(location: string): string {
@@ -1039,7 +1125,7 @@ export class VendorScraper {
   }
 
   async scrapeAllVenuesWithFetch(): Promise<Venue[]> {
-    console.log(`🌐 Using fetch-based master scraping...`);
+    console.log(`🌐 Using enhanced stealth fetch-based scraping...`);
     
     // Try multiple URLs to find venues
     const urlsToTry = [
@@ -1052,15 +1138,47 @@ export class VendorScraper {
       try {
         console.log(`🌐 Trying URL: ${baseUrl}`);
         
+        // Add random delay to avoid rate limiting
+        const delay = Math.random() * 2000 + 1000; // 1-3 seconds
+        console.log(`⏳ Waiting ${Math.round(delay)}ms before request...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Enhanced stealth headers with rotation
+        const userAgents = [
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
+        ];
+        
+        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+        
         const response = await fetch(baseUrl, {
+          method: 'GET',
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
+            'User-Agent': randomUserAgent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'en-US,en;q=0.9',
             'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': '"Windows"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
             'Upgrade-Insecure-Requests': '1',
-          }
+            'Connection': 'keep-alive',
+            'DNT': '1',
+            'Referer': 'https://www.google.com/',
+            'Origin': 'https://www.google.com'
+          },
+          // Add timeout and retry logic
+          signal: AbortSignal.timeout(30000)
         });
       
         if (!response.ok) {
@@ -1101,7 +1219,7 @@ export class VendorScraper {
   }
 
   async scrapeWithFetch(location: string): Promise<Venue[]> {
-    console.log(`🌐 Using fetch-based scraping for ${location}...`);
+    console.log(`🌐 Using enhanced stealth fetch-based scraping for ${location}...`);
     
     try {
       // Convert location to URL format
@@ -1110,15 +1228,47 @@ export class VendorScraper {
       
       console.log(`🌐 Fetching: ${baseUrl}`);
       
+      // Add random delay to avoid rate limiting
+      const delay = Math.random() * 2000 + 1000; // 1-3 seconds
+      console.log(`⏳ Waiting ${Math.round(delay)}ms before request...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      // Enhanced stealth headers with rotation
+      const userAgents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/121.0'
+      ];
+      
+      const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+      
       const response = await fetch(baseUrl, {
+        method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
+          'User-Agent': randomUserAgent,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'Accept-Language': 'en-US,en;q=0.9',
           'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+          'Sec-Ch-Ua-Mobile': '?0',
+          'Sec-Ch-Ua-Platform': '"Windows"',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
           'Upgrade-Insecure-Requests': '1',
-        }
+          'Connection': 'keep-alive',
+          'DNT': '1',
+          'Referer': 'https://www.google.com/',
+          'Origin': 'https://www.google.com'
+        },
+        // Add timeout and retry logic
+        signal: AbortSignal.timeout(30000)
       });
       
       if (!response.ok) {

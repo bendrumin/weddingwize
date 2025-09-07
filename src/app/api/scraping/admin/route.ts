@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { VendorScraper } from '@/lib/scraping/vendorScraper';
+import { VendorScraper } from '../../../../lib/scraping/vendorScraper';
 import { createClient } from '@supabase/supabase-js';
 
 interface Venue {
@@ -68,9 +68,23 @@ export async function POST(request: NextRequest) {
       process.env.STATE_START_INDEX = startIndex.toString();
       
       // Run comprehensive scraping
+      console.log('🚀 Starting scraper.scrapeAllVenues()...');
       const venues = await scraper.scrapeAllVenues();
       
       console.log(`✅ Scraped ${venues.length} venues from batch`);
+      console.log('🔍 First few venues:', venues.slice(0, 3).map(v => ({ name: v.name, location: v.location?.full })));
+      
+      // Check if venues is null or undefined
+      if (!venues) {
+        console.log('❌ ERROR: scraper.scrapeAllVenues() returned null/undefined');
+        return NextResponse.json({ error: 'Scraper returned no venues' }, { status: 500 });
+      }
+      
+      // Check if venues is an empty array
+      if (venues.length === 0) {
+        console.log('⚠️ WARNING: scraper.scrapeAllVenues() returned empty array');
+        return NextResponse.json({ error: 'No venues found' }, { status: 404 });
+      }
       
       // Deduplicate venues by name and location to avoid database conflicts
       const uniqueVenues = venues.length > 0 ? venues.reduce((acc: Venue[], venue) => {
@@ -112,40 +126,68 @@ export async function POST(request: NextRequest) {
           verified: false,
           featured: false,
           contact: {
-            website: venue.url || ''
+            website: venue.url || '',
+            phone: venue.contactPhone || '',
+            email: venue.contactEmail || ''
           },
           business_type: venue.venueType || 'venue',
           last_scraped: new Date().toISOString(),
-          // Enhanced fields
-          capacity_min: venue.capacity?.min || 0,
-          capacity_max: venue.capacity?.max || 0,
-          amenities: venue.amenities || [],
-          venue_type: venue.venueType || 'venue',
-          pricing_description: venue.pricing?.description || '',
           availability_calendar: {},
           reviews_summary: {},
-          lead_fee_percentage: 0
+          lead_fee_percentage: 5
         }));
         
-        const { error } = await supabase
+        // Check for existing venues to avoid duplicates
+        const existingVenues = await supabase
           .from('vendors')
-          .upsert(
-            venueData,
-            { 
-              onConflict: 'name,category',
-              ignoreDuplicates: false 
-            }
-          );
+          .select('name')
+          .eq('category', 'venue');
         
-        if (error) {
-          console.error('❌ Database error:', error);
-          return NextResponse.json({ 
-            error: 'Database error', 
-            details: error.message 
-          }, { status: 500 });
+        const existingNames = new Set(
+          existingVenues.data?.map(v => v.name.toLowerCase()) || []
+        );
+        
+        // Filter out existing venues
+        const newVenues = venueData.filter(v => !existingNames.has(v.name.toLowerCase()));
+        const duplicateCount = venueData.length - newVenues.length;
+        
+        console.log(`📊 Found ${duplicateCount} existing venues, inserting ${newVenues.length} new venues`);
+        
+        let savedCount = 0;
+        let errorCount = 0;
+        
+        if (newVenues.length > 0) {
+          // Insert new venues in batches
+          const batchSize = 10;
+          for (let i = 0; i < newVenues.length; i += batchSize) {
+            const batch = newVenues.slice(i, i + batchSize);
+            
+            try {
+              const { error } = await supabase
+                .from('vendors')
+                .insert(batch);
+              
+              if (error) {
+                console.error(`❌ Failed to save batch ${i}-${i + batch.length}:`, error);
+                errorCount += batch.length;
+              } else {
+                console.log(`✅ Saved batch ${i}-${i + batch.length}: ${batch.length} venues`);
+                savedCount += batch.length;
+              }
+            } catch (err) {
+              console.error(`❌ Exception saving batch ${i}-${i + batch.length}:`, err);
+              errorCount += batch.length;
+            }
+          }
         }
         
-        console.log(`💾 Successfully saved ${uniqueVenues.length} venues to database`);
+        console.log(`💾 Database save results: ${savedCount} saved, ${errorCount} failed`);
+        
+        if (errorCount > 0) {
+          console.log(`⚠️ Some venues failed to save, but ${savedCount} were successful`);
+        }
+        
+        console.log(`💾 Successfully saved ${savedCount} venues to database`);
         
         // Verify the venues were actually saved
         const { count: newCount, error: countError } = await supabase
@@ -158,6 +200,11 @@ export async function POST(request: NextRequest) {
         } else {
           console.log(`📊 Total venues in database after save: ${newCount}`);
         }
+        
+        // Update the response data with actual saved count
+        uniqueVenues.length = savedCount;
+      } else {
+        console.log('⚠️ No venues to save');
       }
       
       // Calculate next batch

@@ -217,109 +217,136 @@ export async function POST(request: NextRequest) {
         try {
           const venuesToSave = venues.map((venue: Venue) => {
             const profileData = venue.profileData;
+            
+            // Build comprehensive description from available data
+            let comprehensiveDescription = venue.description || `Beautiful venue in ${venue.location?.full || location}`;
+            
+            // Add capacity info if available
+            if (venue.capacity?.description) {
+              comprehensiveDescription += ` Capacity: ${venue.capacity.description}.`;
+            }
+            
+            // Add pricing info if available
+            if (venue.pricing?.description) {
+              comprehensiveDescription += ` Pricing: ${venue.pricing.description}.`;
+            }
+            
+            // Add detailed description if available
+            if (venue.detailedDescription) {
+              comprehensiveDescription += ` ${venue.detailedDescription}`;
+            }
+            
+            // Add profile data description if available
+            if (profileData?.basic?.description) {
+              comprehensiveDescription += ` ${profileData.basic.description}`;
+            }
+            
+            // Build comprehensive specialties array
+            const allSpecialties = [
+              ...(venue.specialties || []),
+              ...(venue.amenities || []),
+              ...(profileData?.basic?.languages || []),
+              ...(profileData?.services?.ceremonyTypes || [])
+            ].filter((item, index, arr) => arr.indexOf(item) === index); // Remove duplicates
+            
+            // Build comprehensive contact info
+            const contactInfo: Record<string, string> = {
+              website: venue.url || profileData?.media?.primaryImage || '',
+              phone: venue.contactPhone || '',
+              email: venue.contactEmail || ''
+            };
+            
+            // Add team contact info if available
+            if (profileData?.contact?.teamName) {
+              contactInfo.teamName = profileData.contact.teamName;
+            }
+            if (profileData?.contact?.role) {
+              contactInfo.role = profileData.contact.role;
+            }
+            if (profileData?.contact?.responseTime) {
+              contactInfo.responseTime = profileData.contact.responseTime;
+            }
+            
+            // Build comprehensive pricing info
+            const pricingInfo: Record<string, unknown> = {
+              min: venue.pricing?.min || 1000,
+              max: venue.pricing?.max || 5000,
+              currency: venue.pricing?.currency || 'USD'
+            };
+            
+            // Add pricing details if available
+            if (venue.pricing?.description) {
+              pricingInfo.description = venue.pricing.description;
+            }
+            if (venue.pricingDetails) {
+              pricingInfo.details = venue.pricingDetails;
+            }
+            if (profileData?.pricing?.details) {
+              pricingInfo.details = profileData.pricing.details;
+            }
+            if (profileData?.pricing?.available !== undefined) {
+              pricingInfo.available = profileData.pricing.available;
+            }
+            if (profileData?.pricing?.requiresContact !== undefined) {
+              pricingInfo.requiresContact = profileData.pricing.requiresContact;
+            }
+            
+            // Build comprehensive location info
+            const locationInfo: Record<string, string> = {
+              city: venue.location?.city || '',
+              state: venue.location?.state || '',
+              full: venue.location?.full || ''
+            };
+            
+            // Add additional location details if available
+            if (profileData?.basic?.address) {
+              locationInfo.address = profileData.basic.address;
+            }
+            if (profileData?.basic?.neighborhood) {
+              locationInfo.neighborhood = profileData.basic.neighborhood;
+            }
+            
+            // Build reviews summary
+            const reviewsSummary: Record<string, unknown> = {};
+            if (venue.reviews && venue.reviews.length > 0) {
+              reviewsSummary.totalReviews = venue.reviews.length;
+              reviewsSummary.sampleReviews = venue.reviews.slice(0, 3);
+            }
+            if (profileData?.reviews?.overallRating) {
+              reviewsSummary.overallRating = profileData.reviews.overallRating;
+            }
+            if (profileData?.reviews?.totalReviews) {
+              reviewsSummary.totalReviews = profileData.reviews.totalReviews;
+            }
+            if (profileData?.reviews?.aiSummary) {
+              reviewsSummary.aiSummary = profileData.reviews.aiSummary;
+            }
+            if (profileData?.individualReviews && profileData.individualReviews.length > 0) {
+              reviewsSummary.individualReviews = profileData.individualReviews.slice(0, 5);
+            }
+            
             return {
               name: venue.name,
               category: 'venue',
-              location: {
-                city: venue.location?.city || '',
-                state: venue.location?.state || '',
-                full: venue.location?.full || ''
-              },
-              pricing: venue.pricing || {
-                min: 1000,
-                max: 5000,
-                currency: 'USD'
-              },
-              rating: venue.rating || 0,
-              review_count: venue.reviewCount || 0,
-              portfolio_images: venue.imageUrl ? [venue.imageUrl] : [],
-              description: venue.description || `Beautiful venue in ${venue.location?.full || location}`,
-              specialties: venue.specialties || ['Wedding Reception', 'Ceremony', 'Corporate Events'],
+              location: locationInfo,
+              pricing: pricingInfo,
+              rating: venue.rating || profileData?.reviews?.overallRating || 0,
+              review_count: venue.reviewCount || profileData?.reviews?.totalReviews || 0,
+              portfolio_images: [
+                ...(venue.imageUrl ? [venue.imageUrl] : []),
+                ...(profileData?.media?.primaryImage ? [profileData.media.primaryImage] : []),
+                ...(profileData?.media?.portfolioImages || [])
+              ].filter((img, index, arr) => arr.indexOf(img) === index), // Remove duplicates
+              description: comprehensiveDescription,
+              specialties: allSpecialties,
               verified: false,
               featured: false,
-              contact: {
-                website: venue.url || ''
-              },
+              contact: contactInfo,
               business_type: venue.venueType || 'venue',
               last_scraped: new Date().toISOString(),
-              // Enhanced fields
-              capacity_min: venue.capacity?.min || 0,
-              capacity_max: venue.capacity?.max || 0,
-              amenities: venue.amenities || [],
-              venue_type: venue.venueType || 'venue',
-              pricing_description: venue.pricing?.description || '',
-              capacity_description: venue.capacity?.description || '',
-              // Detailed fields
-              detailed_description: venue.detailedDescription || venue.description || '',
-              pricing_details: venue.pricingDetails || '',
-              capacity_details: venue.capacityDetails || '',
-              reviews: venue.reviews || [],
-              contact_phone: venue.contactPhone || '',
-              contact_email: venue.contactEmail || '',
-              contact_website: venue.contactWebsite || venue.url || '',
-              // Comprehensive profile fields
-              tagline: profileData?.basic?.tagline || '',
-              address: profileData?.basic?.address || '',
-              neighborhood: profileData?.basic?.neighborhood || '',
-              languages: profileData?.basic?.languages || [],
-              guest_range: profileData?.capacity?.guestRange || '',
-              max_capacity: profileData?.capacity?.maxCapacity || 0,
-              ceremonies_and_receptions: profileData?.services?.ceremoniesAndReceptions || false,
-              ceremony_types: profileData?.services?.ceremonyTypes || [],
-              team_name: profileData?.contact?.teamName || '',
-              team_role: profileData?.contact?.role || '',
-              response_time: profileData?.contact?.responseTime || '',
-              has_contact_form: profileData?.contact?.contactForm || false,
-              award_count: profileData?.awards?.awardCount || 0,
-              award_type: profileData?.awards?.awardType || '',
-              award_source: profileData?.awards?.awardSource || '',
-              pricing_available: profileData?.pricing?.available || false,
-              pricing_requires_contact: profileData?.pricing?.requiresContact || false,
-              // Amenities
-              ceremony_area: profileData?.amenities?.ceremonyArea || false,
-              covered_outdoors_space: profileData?.amenities?.coveredOutdoorsSpace || false,
-              dressing_room: profileData?.amenities?.dressingRoom || false,
-              handicap_accessible: profileData?.amenities?.handicapAccessible || false,
-              indoor_event_space: profileData?.amenities?.indoorEventSpace || false,
-              liability_insurance: profileData?.amenities?.liabilityInsurance || false,
-              outdoor_event_space: profileData?.amenities?.outdoorEventSpace || false,
-              reception_area: profileData?.amenities?.receptionArea || false,
-              wireless_internet: profileData?.amenities?.wirelessInternet || false,
-              // Settings
-              ballroom: profileData?.settings?.ballroom || false,
-              garden: profileData?.settings?.garden || false,
-              historic_venue: profileData?.settings?.historicVenue || false,
-              industrial_warehouse: profileData?.settings?.industrialWarehouse || false,
-              trees: profileData?.settings?.trees || false,
-              // Service offerings
-              bar_and_drinks_available: profileData?.serviceOfferings?.barAndDrinks?.available || false,
-              bar_rental: profileData?.serviceOfferings?.barAndDrinks?.barRental || false,
-              cakes_and_desserts_available: profileData?.serviceOfferings?.cakesAndDesserts?.available || false,
-              cupcakes: profileData?.serviceOfferings?.cakesAndDesserts?.cupcakes || false,
-              other_desserts: profileData?.serviceOfferings?.cakesAndDesserts?.otherDesserts || false,
-              food_and_catering_available: profileData?.serviceOfferings?.foodAndCatering?.available || false,
-              planning_available: profileData?.serviceOfferings?.planning?.available || false,
-              se_habla_espanol: profileData?.serviceOfferings?.planning?.seHablaEspanol || false,
-              wedding_design: profileData?.serviceOfferings?.planning?.weddingDesign || false,
-              rentals_and_equipment_available: profileData?.serviceOfferings?.rentalsAndEquipment?.available || false,
-              tents: profileData?.serviceOfferings?.rentalsAndEquipment?.tents || false,
-              service_staff_available: profileData?.serviceOfferings?.serviceStaff?.available || false,
-              transportation_available: profileData?.serviceOfferings?.transportation?.available || false,
-              shuttle_service: profileData?.serviceOfferings?.transportation?.shuttleService || false,
-              // Reviews
-              rating_breakdown: profileData?.reviews?.ratingBreakdown || {},
-              ai_summary: profileData?.reviews?.aiSummary || '',
-              sort_options: profileData?.reviews?.sortOptions || [],
-              individual_reviews: profileData?.individualReviews || [],
-              // Team
-              team_description: profileData?.team?.description || '',
-              team_message: profileData?.team?.teamMessage || '',
-              // Media
-              primary_image: profileData?.media?.primaryImage || '',
-              review_photos: profileData?.media?.reviewPhotos || [],
-              // Metadata
-              source_url: profileData?.metadata?.sourceUrl || venue.url || '',
-              page_type: profileData?.metadata?.pageType || 'venue_profile'
+              availability_calendar: {},
+              reviews_summary: reviewsSummary,
+              lead_fee_percentage: 5
             };
           });
 
@@ -343,10 +370,7 @@ export async function POST(request: NextRequest) {
 
           const { error: insertError } = await supabase
             .from('vendors')
-            .upsert(venuesToSave, { 
-              onConflict: 'name,category',
-              ignoreDuplicates: false // Allow updates to refresh data
-            });
+            .insert(venuesToSave);
 
           if (insertError) {
             console.error('❌ Error saving venues to database:', insertError);
