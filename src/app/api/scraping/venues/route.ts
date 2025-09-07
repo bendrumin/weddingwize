@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { location, maxVenues, maxPages } = body;
+    const { location, maxVenues, maxPages } = body; // eslint-disable-line @typescript-eslint/no-unused-vars
 
     console.log(`🔍 Starting master scrape (will filter by location: ${location})...`);
 

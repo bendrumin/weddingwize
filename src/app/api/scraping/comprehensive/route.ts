@@ -140,47 +140,6 @@ export async function POST(request: NextRequest) {
           .from('vendors')
           .upsert(
             venueData,
-            uniqueVenues.map(venue => ({
-              name: venue.name,
-              category: 'venue',
-              location: {
-                city: venue.location?.city || '',
-                state: venue.location?.state || '',
-                full: venue.location?.full || ''
-              },
-              pricing: venue.pricing || {
-                min: 1000,
-                max: 5000,
-                currency: 'USD'
-              },
-              rating: venue.rating || 0,
-              review_count: venue.reviewCount || 0,
-              portfolio_images: venue.imageUrl ? [venue.imageUrl] : [],
-              description: venue.description || `Beautiful venue in ${venue.location?.full || 'Unknown'}`,
-              specialties: venue.specialties || ['Wedding Reception', 'Ceremony', 'Corporate Events'],
-              verified: false,
-              featured: false,
-              contact: {
-                website: venue.url || ''
-              },
-              business_type: venue.venueType || 'venue',
-              last_scraped: new Date().toISOString(),
-              // Enhanced fields
-              capacity_min: venue.capacity?.min || 0,
-              capacity_max: venue.capacity?.max || 0,
-              amenities: venue.amenities || [],
-              venue_type: venue.venueType || 'venue',
-              pricing_description: venue.pricing?.description || '',
-              capacity_description: venue.capacity?.description || '',
-              // Detailed fields
-              detailed_description: venue.detailedDescription || venue.description || '',
-              pricing_details: venue.pricingDetails || '',
-              capacity_details: venue.capacityDetails || '',
-              reviews: venue.reviews || [],
-              contact_phone: venue.contactPhone || '',
-              contact_email: venue.contactEmail || '',
-              contact_website: venue.contactWebsite || venue.url || ''
-            })),
             { 
               onConflict: 'name,category',
               ignoreDuplicates: false 
