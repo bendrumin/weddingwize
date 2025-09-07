@@ -39,6 +39,7 @@ export default function ScrapingDashboard() {
   const [comprehensiveProgress, setComprehensiveProgress] = useState<ComprehensiveProgress | null>(null);
   const [comprehensiveLoading, setComprehensiveLoading] = useState(false);
   const [actualVenueCount, setActualVenueCount] = useState<number>(0);
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
   const [comprehensiveResults, setComprehensiveResults] = useState<{
     success: boolean;
     message: string;
@@ -72,8 +73,29 @@ export default function ScrapingDashboard() {
     if (data) setJobs(data);
   }, [supabase]);
 
+  const addLog = useCallback((message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setConsoleLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+  }, []);
+
   const fetchActualVenueCount = useCallback(async () => {
     try {
+      addLog('Fetching venue count from database...');
+      
+      // First, let's check what categories exist
+      const { data: categories, error: catError } = await supabase
+        .from('vendors')
+        .select('category')
+        .limit(10);
+      
+      if (catError) {
+        addLog(`❌ Error fetching categories: ${catError.message}`);
+      } else {
+        const uniqueCategories = [...new Set(categories?.map(v => v.category) || [])];
+        addLog(`🔍 Found categories: ${uniqueCategories.join(', ')}`);
+      }
+      
+      // Now get the venue count
       const { count, error } = await supabase
         .from('vendors')
         .select('*', { count: 'exact', head: true })
@@ -81,13 +103,25 @@ export default function ScrapingDashboard() {
 
       if (error) {
         console.error('Error fetching venue count:', error);
+        addLog(`❌ Error fetching venue count: ${error.message}`);
       } else {
         setActualVenueCount(count || 0);
+        addLog(`📊 Found ${count || 0} venues in database`);
+      }
+      
+      // Also get total count
+      const { count: totalCount, error: totalError } = await supabase
+        .from('vendors')
+        .select('*', { count: 'exact', head: true });
+        
+      if (!totalError) {
+        addLog(`📊 Total vendors in database: ${totalCount || 0}`);
       }
     } catch (error) {
       console.error('Error fetching venue count:', error);
+      addLog(`❌ Error fetching venue count: ${error}`);
     }
-  }, [supabase]);
+  }, [supabase, addLog]);
 
   useEffect(() => {
     fetchJobs();
@@ -96,6 +130,9 @@ export default function ScrapingDashboard() {
 
   const triggerComprehensiveScraping = async (startIndex: number = 0, maxStates: number = 10) => {
     setComprehensiveLoading(true);
+    setConsoleLogs([]); // Clear previous logs
+    addLog(`🚀 Starting comprehensive scraping (states ${startIndex + 1}-${startIndex + maxStates})`);
+    
     setComprehensiveProgress({
       isRunning: true,
       currentBatch: `${startIndex + 1}-${startIndex + maxStates}`,
@@ -123,8 +160,12 @@ export default function ScrapingDashboard() {
       });
 
       const data = await response.json();
+      addLog(`📡 API Response: ${response.status} ${response.statusText}`);
       
       if (response.ok) {
+        addLog(`✅ Scraping completed successfully`);
+        addLog(`📊 Venues scraped: ${data.venuesScraped || 0}`);
+        addLog(`🔄 States processed: ${data.summary?.statesProcessed || 0}`);
         setComprehensiveProgress({
           isRunning: false,
           currentBatch: data.batchInfo?.currentBatch || 'Unknown',
@@ -146,8 +187,10 @@ export default function ScrapingDashboard() {
         });
         
         // Refresh venue count after scraping
+        addLog(`🔄 Refreshing venue count...`);
         await fetchActualVenueCount();
       } else {
+        addLog(`❌ Scraping failed: ${data.error || 'Unknown error'}`);
         setComprehensiveProgress({
           isRunning: false,
           currentBatch: 'Unknown',
@@ -171,6 +214,7 @@ export default function ScrapingDashboard() {
       }
     } catch (error) {
       console.error('Failed to trigger comprehensive scraping:', error);
+      addLog(`❌ Network error: ${error}`);
       setComprehensiveProgress({
         isRunning: false,
         currentBatch: 'Unknown',
@@ -185,12 +229,37 @@ export default function ScrapingDashboard() {
       });
     } finally {
       setComprehensiveLoading(false);
+      addLog(`🏁 Scraping process completed`);
     }
   };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">Venue Scraping Dashboard</h1>
+      
+      {/* Console Logs Section */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Console Logs</h3>
+          <button
+            onClick={() => setConsoleLogs([])}
+            className="text-sm text-red-600 hover:text-red-800 underline"
+          >
+            Clear Logs
+          </button>
+        </div>
+        <div className="bg-gray-900 text-green-400 p-4 rounded-md font-mono text-sm max-h-64 overflow-y-auto">
+          {consoleLogs.length === 0 ? (
+            <div className="text-gray-500">No logs yet. Start a scraping job to see logs here.</div>
+          ) : (
+            consoleLogs.map((log, index) => (
+              <div key={index} className="mb-1">
+                {log}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
       
       {/* Comprehensive Scraping Section */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
