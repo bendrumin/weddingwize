@@ -55,6 +55,7 @@ export default function ScrapingDashboard() {
   const [progress, setProgress] = useState<ScrapingProgress | null>(null);
   const [comprehensiveProgress, setComprehensiveProgress] = useState<ComprehensiveProgress | null>(null);
   const [comprehensiveLoading, setComprehensiveLoading] = useState(false);
+  const [actualVenueCount, setActualVenueCount] = useState<number>(0);
   const [comprehensiveResults, setComprehensiveResults] = useState<{
     success: boolean;
     message: string;
@@ -103,9 +104,28 @@ export default function ScrapingDashboard() {
     if (data) setJobs(data);
   }, [supabase]);
 
+  const fetchActualVenueCount = useCallback(async () => {
+    try {
+      const { count, error } = await supabase
+        .from('vendors')
+        .select('*', { count: 'exact', head: true })
+        .eq('category', 'venue');
+
+      if (error) {
+        console.error('Error fetching venue count:', error);
+      } else {
+        setActualVenueCount(count || 0);
+        console.log('Actual venue count:', count);
+      }
+    } catch (error) {
+      console.error('Error fetching venue count:', error);
+    }
+  }, [supabase]);
+
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+    fetchActualVenueCount();
+  }, [fetchJobs, fetchActualVenueCount]);
 
   const triggerScraping = async (location: string) => {
     setLoading(true);
@@ -204,6 +224,9 @@ export default function ScrapingDashboard() {
           summary: data.summary,
           timestamp: new Date().toISOString()
         });
+        
+        // Refresh venue count after scraping
+        await fetchActualVenueCount();
       } else {
         setComprehensiveProgress({
           isRunning: false,
@@ -852,9 +875,20 @@ export default function ScrapingDashboard() {
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900">Total Venues</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Total Venues in DB</h3>
+            <button
+              onClick={fetchActualVenueCount}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+            >
+              Refresh
+            </button>
+          </div>
           <p className="text-3xl font-bold text-purple-600">
-            {jobs.reduce((sum, job) => sum + (job.vendors_found || 0), 0)}
+            {actualVenueCount}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Actual venues in database
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">

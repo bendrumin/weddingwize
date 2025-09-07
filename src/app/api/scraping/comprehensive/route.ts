@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
       console.log(`🔄 Deduplicated ${venues.length} venues to ${uniqueVenues.length} unique venues`);
       
       if (uniqueVenues.length > 0) {
+        console.log('💾 Attempting to save venues to database...');
         // Save venues to database (matching existing schema)
         const { error } = await supabase
           .from('vendors')
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
         
         if (error) {
           console.error('❌ Database error:', error);
+          console.error('❌ Error details:', error.message, error.code, error.details);
           return NextResponse.json({ 
             error: 'Database error', 
             details: error.message 
