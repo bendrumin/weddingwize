@@ -11,13 +11,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Client-side Supabase client (singleton pattern to prevent multiple instances)
 let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
+// Extend Window interface to include our custom property
+declare global {
+  interface Window {
+    __supabase_client?: ReturnType<typeof createClient>;
+  }
+}
+
 export const supabase = (() => {
   if (!supabaseInstance) {
     // Check if we're in the browser
     if (typeof window !== 'undefined') {
       // Check if there's already a Supabase client in the global scope
-      if ((window as any).__supabase_client) {
-        return (window as any).__supabase_client;
+      if (window.__supabase_client) {
+        return window.__supabase_client;
       }
       
       supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
@@ -29,7 +36,7 @@ export const supabase = (() => {
       });
       
       // Store in global scope to prevent multiple instances
-      (window as any).__supabase_client = supabaseInstance;
+      window.__supabase_client = supabaseInstance;
     } else {
       // Server-side: create new instance
       supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {

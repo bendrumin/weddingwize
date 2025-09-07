@@ -67,7 +67,7 @@ export default function ScrapingDashboard() {
       .limit(50);
 
     if (data) setJobs(data);
-  }, [supabase]);
+  }, []);
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -117,7 +117,7 @@ export default function ScrapingDashboard() {
       console.error('Error fetching venue count:', error);
       addLog(`❌ Error fetching venue count: ${error}`);
     }
-  }, [supabase, addLog]);
+  }, [addLog]);
 
   useEffect(() => {
     fetchJobs();
