@@ -999,10 +999,13 @@ export class VendorScraper {
   private getComprehensiveMockVenues(): Venue[] {
     console.log('🎭 Returning comprehensive mock venues from multiple states...');
     
+    // Generate unique timestamp for this batch
+    const timestamp = Date.now();
+    
     const venues: Venue[] = [
       // New York venues
       {
-        name: 'The Plaza Hotel',
+        name: `The Plaza Hotel ${timestamp}`,
         location: { city: 'New York', state: 'NY', full: 'New York, NY' },
         rating: 4.9,
         reviewCount: 234,
@@ -1017,7 +1020,7 @@ export class VendorScraper {
         specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
       },
       {
-        name: 'Brooklyn Botanic Garden',
+        name: `Brooklyn Botanic Garden ${timestamp}`,
         location: { city: 'Brooklyn', state: 'NY', full: 'Brooklyn, NY' },
         rating: 4.7,
         reviewCount: 156,
@@ -1033,7 +1036,7 @@ export class VendorScraper {
       },
       // California venues
       {
-        name: 'The Beverly Hills Hotel',
+        name: `The Beverly Hills Hotel ${timestamp}`,
         location: { city: 'Beverly Hills', state: 'CA', full: 'Beverly Hills, CA' },
         rating: 4.8,
         reviewCount: 189,
@@ -1048,7 +1051,7 @@ export class VendorScraper {
         specialties: ['Wedding Reception', 'Ceremony', 'Luxury Events']
       },
       {
-        name: 'Napa Valley Vineyard Estate',
+        name: `Napa Valley Vineyard Estate ${timestamp}`,
         location: { city: 'Napa', state: 'CA', full: 'Napa, CA' },
         rating: 4.9,
         reviewCount: 267,
@@ -1064,7 +1067,7 @@ export class VendorScraper {
       },
       // Texas venues
       {
-        name: 'The Driskill Hotel',
+        name: `The Driskill Hotel ${timestamp}`,
         location: { city: 'Austin', state: 'TX', full: 'Austin, TX' },
         rating: 4.6,
         reviewCount: 143,
@@ -1080,7 +1083,7 @@ export class VendorScraper {
       },
       // Florida venues
       {
-        name: 'The Breakers Palm Beach',
+        name: `The Breakers Palm Beach ${timestamp}`,
         location: { city: 'Palm Beach', state: 'FL', full: 'Palm Beach, FL' },
         rating: 4.8,
         reviewCount: 198,
@@ -1096,7 +1099,7 @@ export class VendorScraper {
       },
       // Minnesota venues (real data)
       {
-        name: 'The Grand 1858 at Minneapolis Event Centers',
+        name: `The Grand 1858 at Minneapolis Event Centers ${timestamp}`,
         location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
         rating: 4.9,
         reviewCount: 130,
@@ -1246,7 +1249,7 @@ export class VendorScraper {
     // Generate more realistic mock data based on location
     const mockVenues = [
       {
-        name: 'The Grand Ballroom',
+        name: `The Grand Ballroom ${timestamp}`,
         location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
         rating: 4.8,
         reviewCount: 127,
@@ -1261,7 +1264,7 @@ export class VendorScraper {
         specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
       },
       {
-        name: 'Garden Pavilion', 
+        name: `Garden Pavilion ${timestamp}`, 
         location: { city: 'St. Paul', state: 'MN', full: 'St. Paul, MN' },
         rating: 4.6,
         reviewCount: 89,
@@ -1276,7 +1279,7 @@ export class VendorScraper {
         specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
       },
       {
-        name: 'Historic Manor House',
+        name: `Historic Manor House ${timestamp}`,
         location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
         rating: 4.9,
         reviewCount: 156,

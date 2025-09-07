@@ -83,8 +83,12 @@ export async function POST(request: NextRequest) {
       // Deduplicate venues by name and location to avoid database conflicts
       const uniqueVenues = venues.length > 0 ? venues.reduce((acc: Venue[], venue) => {
         const key = `${venue.name.toLowerCase()}-${venue.location?.full?.toLowerCase() || 'unknown'}`;
-        if (!acc.find(v => `${v.name.toLowerCase()}-${v.location?.full?.toLowerCase() || 'unknown'}` === key)) {
+        const existingKey = acc.find(v => `${v.name.toLowerCase()}-${v.location?.full?.toLowerCase() || 'unknown'}` === key);
+        if (!existingKey) {
           acc.push(venue);
+          console.log(`✅ Added unique venue: ${venue.name} - ${venue.location?.full}`);
+        } else {
+          console.log(`❌ Skipped duplicate venue: ${venue.name} - ${venue.location?.full}`);
         }
         return acc;
       }, []) : [];
