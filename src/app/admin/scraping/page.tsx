@@ -83,7 +83,6 @@ export default function ScrapingDashboard() {
         console.error('Error fetching venue count:', error);
       } else {
         setActualVenueCount(count || 0);
-        console.log('Actual venue count:', count);
       }
     } catch (error) {
       console.error('Error fetching venue count:', error);

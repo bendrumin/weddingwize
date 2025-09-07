@@ -11,9 +11,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Dashboard: loading=', loading, 'user=', user?.id, 'profile=', profile?.id);
     if (!loading && !user) {
-      console.log('Dashboard: No user, redirecting to signin');
       router.push('/auth/signin');
     }
   }, [user, loading, router, profile?.id]);
@@ -24,7 +22,6 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    console.log('Dashboard: Showing loading spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div>
@@ -33,12 +30,10 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    console.log('Dashboard: No user, returning null');
     return null;
   }
 
   if (!profile) {
-    console.log('Dashboard: No profile, showing profile loading');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -48,8 +43,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  console.log('Dashboard: Rendering dashboard content');
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

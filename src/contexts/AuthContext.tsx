@@ -41,16 +41,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    console.log('AuthContext: Getting initial session...');
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('AuthContext: Initial session:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        console.log('AuthContext: User found, fetching profile...');
         fetchProfile(session.user.id);
       } else {
-        console.log('AuthContext: No user, setting loading to false');
         setLoading(false);
       }
     });
@@ -59,15 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log('User authenticated, fetching profile...');
         await fetchProfile(session.user.id);
       } else {
-        console.log('No user, clearing profile');
         setProfile(null);
         setLoading(false);
       }
@@ -78,9 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('Fetching profile for user:', userId);
-      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing');
-      console.log('Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing');
       
       // Add timeout to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => 
@@ -97,7 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = result;
 
       if (error && (error as { code?: string }).code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error fetching profile:', error);
         // Set a default profile if fetch fails
         setProfile({
           id: userId,
@@ -127,11 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           updated_at: new Date(),
         } as WeddingProfile);
       } else if (data) {
-        console.log('Profile found:', data);
         setProfile(data as WeddingProfile);
       } else {
         // Profile doesn't exist, create a default one
-        console.log('Creating default profile for user');
         const { data: newProfile, error: createError } = await supabase
           .from('wedding_profiles')
           .insert({
@@ -161,7 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .single();
 
         if (createError) {
-          console.error('Error creating default profile:', createError);
           // Set a default profile even if creation fails
           setProfile({
             id: userId,
@@ -191,7 +177,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             updated_at: new Date(),
           } as WeddingProfile);
         } else {
-          console.log('Profile created successfully:', newProfile);
           setProfile(newProfile);
         }
       }

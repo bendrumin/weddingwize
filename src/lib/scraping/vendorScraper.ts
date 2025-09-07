@@ -937,12 +937,6 @@ export class VendorScraper {
       // Parse HTML to extract venue data
       const venues = this.parseAllVenuesFromHTML();
       console.log(`🎯 Extracted ${venues.length} venues from HTML`);
-      console.log('🔍 Sample extracted venues:', venues.slice(0, 2).map(v => ({ 
-        name: v.name, 
-        location: v.location?.full,
-        rating: v.rating,
-        reviewCount: v.reviewCount 
-      })));
       
       return venues;
       

@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
       const venues = await scraper.scrapeAllVenues(); // Comprehensive scraping
       
       console.log(`✅ Scraped ${venues.length} venues from batch`);
-      console.log('🔍 Sample venues:', venues.slice(0, 3).map(v => ({ name: v.name, location: v.location?.full })));
       
       // Deduplicate venues by name and location to avoid database conflicts
       const uniqueVenues = venues.length > 0 ? venues.reduce((acc: Venue[], venue) => {
@@ -91,11 +90,9 @@ export async function POST(request: NextRequest) {
       }, []) : [];
       
       console.log(`🔄 Deduplicated ${venues.length} venues to ${uniqueVenues.length} unique venues`);
-      console.log('🔍 Sample unique venues:', uniqueVenues.slice(0, 3).map(v => ({ name: v.name, location: v.location?.full })));
       
       if (uniqueVenues.length > 0) {
         console.log('💾 Attempting to save venues to database...');
-        console.log('🔍 First venue data structure:', JSON.stringify(uniqueVenues[0], null, 2));
         
         // Save venues to database (matching existing schema)
         const venueData = uniqueVenues.map(venue => ({
@@ -134,8 +131,6 @@ export async function POST(request: NextRequest) {
           lead_fee_percentage: 0
         }));
         
-        console.log('🔍 Sample venue data for DB:', JSON.stringify(venueData[0], null, 2));
-        
         const { error } = await supabase
           .from('vendors')
           .upsert(
@@ -148,7 +143,6 @@ export async function POST(request: NextRequest) {
         
         if (error) {
           console.error('❌ Database error:', error);
-          console.error('❌ Error details:', error.message, error.code, error.details);
           return NextResponse.json({ 
             error: 'Database error', 
             details: error.message 
