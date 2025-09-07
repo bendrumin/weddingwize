@@ -911,40 +911,63 @@ export class VendorScraper {
   async scrapeAllVenuesWithFetch(): Promise<Venue[]> {
     console.log(`🌐 Using fetch-based master scraping...`);
     
-    try {
-      const baseUrl = `https://www.theknot.com/marketplace/wedding-reception-venues`;
+    // Try multiple URLs to find venues
+    const urlsToTry = [
+      'https://www.theknot.com/marketplace/wedding-reception-venues',
+      'https://www.theknot.com/marketplace/wedding-venues',
+      'https://www.theknot.com/marketplace/venues'
+    ];
+    
+    for (const baseUrl of urlsToTry) {
+      try {
+        console.log(`🌐 Trying URL: ${baseUrl}`);
+        
+        const response = await fetch(baseUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+          }
+        });
       
-      console.log(`🌐 Fetching: ${baseUrl}`);
-      
-      const response = await fetch(baseUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
+        if (!response.ok) {
+          console.log(`❌ URL failed with status ${response.status}, trying next...`);
+          continue;
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        
+        const html = await response.text();
+        console.log(`✅ Fetched ${html.length} characters of HTML from ${baseUrl}`);
+        
+        // Debug: Check if HTML contains venue data
+        if (html.includes('venue') || html.includes('wedding') || html.includes('reception')) {
+          console.log('✅ HTML appears to contain venue-related content');
+        } else {
+          console.log('⚠️ HTML may not contain venue data');
+        }
+        
+        // Parse HTML to extract venue data
+        const venues = this.parseAllVenuesFromHTML(html);
+        console.log(`🎯 Extracted ${venues.length} venues from HTML`);
+        
+        if (venues.length > 0) {
+          return venues;
+        } else {
+          console.log('⚠️ No venues found, trying next URL...');
+        }
+        
+      } catch (error) {
+        console.error(`❌ Error with URL ${baseUrl}:`, error);
+        console.log('🔄 Trying next URL...');
+        continue;
       }
-      
-      const html = await response.text();
-      console.log(`✅ Fetched ${html.length} characters of HTML`);
-      
-      // Parse HTML to extract venue data
-      const venues = this.parseAllVenuesFromHTML();
-      console.log(`🎯 Extracted ${venues.length} venues from HTML`);
-      
-      return venues;
-      
-    } catch (error) {
-      console.error('❌ Fetch-based master scraping failed:', error);
-      console.log('🎭 Falling back to comprehensive mock data');
-      return this.getComprehensiveMockVenues();
     }
+    
+    // If all URLs failed, fall back to mock data
+    console.log('❌ All URLs failed, falling back to comprehensive mock data');
+    return this.getComprehensiveMockVenues();
   }
 
   async scrapeWithFetch(location: string): Promise<Venue[]> {
@@ -988,12 +1011,25 @@ export class VendorScraper {
     }
   }
 
-  private parseAllVenuesFromHTML(): Venue[] {
+  private parseAllVenuesFromHTML(html: string): Venue[] {
     console.log('🔍 Parsing all venues from HTML...');
     
-    // This would parse the HTML to extract venues from all locations
-    // For now, return comprehensive mock data with venues from multiple states
-    return this.getComprehensiveMockVenues();
+    try {
+      // Try to parse real venues from The Knot HTML
+      const venues = this.parseVenuesFromHTML(html, 'comprehensive');
+      
+      if (venues.length > 0) {
+        console.log(`✅ Successfully parsed ${venues.length} real venues from HTML`);
+        return venues;
+      } else {
+        console.log('⚠️ No venues found in HTML, falling back to mock data');
+        return this.getComprehensiveMockVenues();
+      }
+    } catch (error) {
+      console.error('❌ Error parsing HTML:', error);
+      console.log('🎭 Falling back to comprehensive mock data');
+      return this.getComprehensiveMockVenues();
+    }
   }
 
   private getComprehensiveMockVenues(): Venue[] {
