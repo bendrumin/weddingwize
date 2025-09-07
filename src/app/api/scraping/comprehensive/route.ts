@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
       const venues = await scraper.scrapeAllVenues(); // Comprehensive scraping
       
       console.log(`✅ Scraped ${venues.length} venues from batch`);
+      console.log('🔍 Sample venues:', venues.slice(0, 3).map(v => ({ name: v.name, location: v.location?.full })));
       
       // Deduplicate venues by name and location to avoid database conflicts
       const uniqueVenues = venues.length > 0 ? venues.reduce((acc: Venue[], venue) => {
@@ -90,13 +91,55 @@ export async function POST(request: NextRequest) {
       }, []) : [];
       
       console.log(`🔄 Deduplicated ${venues.length} venues to ${uniqueVenues.length} unique venues`);
+      console.log('🔍 Sample unique venues:', uniqueVenues.slice(0, 3).map(v => ({ name: v.name, location: v.location?.full })));
       
       if (uniqueVenues.length > 0) {
         console.log('💾 Attempting to save venues to database...');
+        console.log('🔍 First venue data structure:', JSON.stringify(uniqueVenues[0], null, 2));
+        
         // Save venues to database (matching existing schema)
+        const venueData = uniqueVenues.map(venue => ({
+          name: venue.name,
+          category: 'venue',
+          location: {
+            city: venue.location?.city || '',
+            state: venue.location?.state || '',
+            full: venue.location?.full || ''
+          },
+          pricing: venue.pricing || {
+            min: 1000,
+            max: 5000,
+            currency: 'USD'
+          },
+          rating: venue.rating || 0,
+          review_count: venue.reviewCount || 0,
+          portfolio_images: venue.imageUrl ? [venue.imageUrl] : [],
+          description: venue.description || `Beautiful venue in ${venue.location?.full || 'Unknown'}`,
+          specialties: venue.specialties || ['Wedding Reception', 'Ceremony', 'Corporate Events'],
+          verified: false,
+          featured: false,
+          contact: {
+            website: venue.url || ''
+          },
+          business_type: venue.venueType || 'venue',
+          last_scraped: new Date().toISOString(),
+          // Enhanced fields
+          capacity_min: venue.capacity?.min || 0,
+          capacity_max: venue.capacity?.max || 0,
+          amenities: venue.amenities || [],
+          venue_type: venue.venueType || 'venue',
+          pricing_description: venue.pricing?.description || '',
+          availability_calendar: {},
+          reviews_summary: {},
+          lead_fee_percentage: 0
+        }));
+        
+        console.log('🔍 Sample venue data for DB:', JSON.stringify(venueData[0], null, 2));
+        
         const { error } = await supabase
           .from('vendors')
           .upsert(
+            venueData,
             uniqueVenues.map(venue => ({
               name: venue.name,
               category: 'venue',
@@ -153,7 +196,19 @@ export async function POST(request: NextRequest) {
           }, { status: 500 });
         }
         
-        console.log(`💾 Saved ${uniqueVenues.length} venues to database`);
+        console.log(`💾 Successfully saved ${uniqueVenues.length} venues to database`);
+        
+        // Verify the venues were actually saved
+        const { count: newCount, error: countError } = await supabase
+          .from('vendors')
+          .select('*', { count: 'exact', head: true })
+          .eq('category', 'venue');
+          
+        if (countError) {
+          console.error('❌ Error getting venue count:', countError);
+        } else {
+          console.log(`📊 Total venues in database after save: ${newCount}`);
+        }
       }
       
       // Calculate next batch
