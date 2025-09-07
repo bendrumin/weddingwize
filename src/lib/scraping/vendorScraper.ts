@@ -965,9 +965,9 @@ export class VendorScraper {
       }
     }
     
-    // If all URLs failed, fall back to mock data
-    console.log('❌ All URLs failed, falling back to comprehensive mock data');
-    return this.getComprehensiveMockVenues();
+    // If all URLs failed, throw an error
+    console.log('❌ All URLs failed, no real data available');
+    throw new Error('Failed to fetch venue data from all attempted URLs');
   }
 
   async scrapeWithFetch(location: string): Promise<Venue[]> {
@@ -1006,8 +1006,7 @@ export class VendorScraper {
               
             } catch (error) {
       console.error('❌ Fetch-based scraping failed:', error);
-      console.log('🎭 Falling back to location-specific mock data');
-      return this.getLocationSpecificMockVenues(location);
+      throw error; // Re-throw instead of falling back to mock data
     }
   }
 
@@ -1015,20 +1014,19 @@ export class VendorScraper {
     console.log('🔍 Parsing all venues from HTML...');
     
     try {
-      // Try to parse real venues from The Knot HTML
+      // Parse real venues from The Knot HTML
       const venues = this.parseVenuesFromHTML(html, 'comprehensive');
       
       if (venues.length > 0) {
         console.log(`✅ Successfully parsed ${venues.length} real venues from HTML`);
         return venues;
       } else {
-        console.log('⚠️ No venues found in HTML, falling back to mock data');
-        return this.getComprehensiveMockVenues();
+        console.log('❌ No venues found in HTML');
+        throw new Error('No venues found in HTML content');
       }
     } catch (error) {
       console.error('❌ Error parsing HTML:', error);
-      console.log('🎭 Falling back to comprehensive mock data');
-      return this.getComprehensiveMockVenues();
+      throw error; // Re-throw instead of falling back to mock data
     }
   }
 
@@ -1157,187 +1155,100 @@ export class VendorScraper {
   private parseVenuesFromHTML(html: string, location: string): Venue[] {
     console.log('🔍 Parsing venues from HTML...');
     
-    // This is a simplified parser - in a real implementation, you'd use a proper HTML parser
-    // For now, we'll extract basic patterns and return mock data with location-specific info
+    const venues: Venue[] = [];
     
-    // const venues: Venue[] = []; // Not used in current implementation
-    
-    // Extract location info
-    const locationParts = location.split(', ');
-    const city = locationParts[0] || 'Unknown';
-    const state = locationParts[1] || 'Unknown';
-    
-    // Generate location-specific mock venues
-    const mockVenues = [
-      {
-        name: `${city} Grand Ballroom`,
-        location: { city, state, full: location },
-        rating: 4.7,
-        reviewCount: 89,
-        url: `https://example.com/${city.toLowerCase()}-ballroom`,
-        imageUrl: '',
-        source: 'fetch',
-        pricing: { min: 2500, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
-        description: `Elegant ballroom venue in ${location} perfect for weddings and special events`,
-        capacity: { min: 100, max: 300, description: 'Up to 300 Guests' },
-        venueType: 'Ballroom',
-        amenities: ['Wedding Reception', 'Ceremony', 'Corporate Events', 'Catering Available'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
-      },
-      {
-        name: `${city} Garden Pavilion`, 
-        location: { city, state, full: location },
-        rating: 4.5,
-        reviewCount: 67,
-        url: `https://example.com/${city.toLowerCase()}-garden`,
-        imageUrl: '',
-        source: 'fetch',
-        pricing: { min: 1800, max: 3500, currency: 'USD', description: '$$ – Affordable' },
-        description: `Beautiful outdoor garden venue in ${location} with covered pavilion`,
-        capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
-        venueType: 'Garden Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
-      },
-      {
-        name: `${city} Historic Manor`,
-        location: { city, state, full: location },
-        rating: 4.8,
-        reviewCount: 124,
-        url: `https://example.com/${city.toLowerCase()}-manor`,
-        imageUrl: '',
-        source: 'fetch',
-        pricing: { min: 3000, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-        description: `Charming historic manor in ${location} with elegant indoor and outdoor spaces`,
-        capacity: { min: 75, max: 250, description: 'Up to 250 Guests' },
-        venueType: 'Historic Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Indoor/Outdoor'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
+    try {
+      // Try to extract venue data from The Knot HTML
+      // Look for common patterns in The Knot's HTML structure
+      
+      // Pattern 1: Look for venue cards with data attributes
+      const venueCardPattern = /<div[^>]*data-venue[^>]*>.*?<\/div>/gs;
+      const venueCards = html.match(venueCardPattern) || [];
+      
+      // Pattern 2: Look for JSON data in script tags
+      const jsonPattern = /window\.__INITIAL_STATE__\s*=\s*({.*?});/s;
+      const jsonMatch = html.match(jsonPattern);
+      
+      // Pattern 3: Look for venue listings in structured data
+      const structuredDataPattern = /"@type":\s*"LocalBusiness"[^}]*"name":\s*"([^"]*)"[^}]*"address":\s*"([^"]*)"/g;
+      const structuredMatches = [...html.matchAll(structuredDataPattern)];
+      
+      console.log(`🔍 Found ${venueCards.length} venue cards, ${structuredMatches.length} structured data entries`);
+      
+      // If we found structured data, parse it
+      if (structuredMatches.length > 0) {
+        for (const match of structuredMatches) {
+          const name = match[1];
+          const address = match[2];
+          
+          if (name && address) {
+            venues.push({
+              name: name.trim(),
+              location: { 
+                city: address.split(',')[0]?.trim() || 'Unknown',
+                state: address.split(',')[1]?.trim() || 'Unknown',
+                full: address.trim()
+              },
+              rating: 4.5, // Default rating
+              reviewCount: 0, // Default review count
+              url: `https://www.theknot.com/marketplace/venue/${name.toLowerCase().replace(/\s+/g, '-')}`,
+              imageUrl: '',
+              source: 'theknot',
+              pricing: { min: 1000, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
+              description: `Beautiful venue in ${address}`,
+              capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
+              venueType: 'Venue',
+              amenities: ['Wedding Reception', 'Ceremony'],
+              specialties: ['Wedding Reception', 'Ceremony']
+            });
+          }
+        }
       }
-    ];
-    
-    return mockVenues;
-  }
-
-  private getLocationSpecificMockVenues(location: string): Venue[] {
-    console.log(`🎭 Returning location-specific mock venues for ${location}`);
-    
-    // Extract location info
-    const locationParts = location.split(', ');
-    const city = locationParts[0] || 'Unknown';
-    const state = locationParts[1] || 'Unknown';
-    
-    // Generate location-specific mock venues
-    const mockVenues = [
-      {
-        name: `${city} Grand Ballroom`,
-        location: { city, state, full: location },
-        rating: 4.7,
-        reviewCount: 89,
-        url: `https://example.com/${city.toLowerCase()}-ballroom`,
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 2500, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
-        description: `Elegant ballroom venue in ${location} perfect for weddings and special events`,
-        capacity: { min: 100, max: 300, description: 'Up to 300 Guests' },
-        venueType: 'Ballroom',
-        amenities: ['Wedding Reception', 'Ceremony', 'Corporate Events', 'Catering Available'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
-      },
-      {
-        name: `${city} Garden Pavilion`, 
-        location: { city, state, full: location },
-        rating: 4.5,
-        reviewCount: 67,
-        url: `https://example.com/${city.toLowerCase()}-garden`,
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 1800, max: 3500, currency: 'USD', description: '$$ – Affordable' },
-        description: `Beautiful outdoor garden venue in ${location} with covered pavilion`,
-        capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
-        venueType: 'Garden Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
-      },
-      {
-        name: `${city} Historic Manor`,
-        location: { city, state, full: location },
-        rating: 4.8,
-        reviewCount: 124,
-        url: `https://example.com/${city.toLowerCase()}-manor`,
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 3000, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-        description: `Charming historic manor in ${location} with elegant indoor and outdoor spaces`,
-        capacity: { min: 75, max: 250, description: 'Up to 250 Guests' },
-        venueType: 'Historic Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Indoor/Outdoor'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
+      
+      // If no structured data found, try to extract from HTML patterns
+      if (venues.length === 0) {
+        // Look for venue names in common HTML patterns
+        const namePattern = /<h[1-6][^>]*class="[^"]*venue[^"]*"[^>]*>([^<]+)<\/h[1-6]>/gi;
+        const nameMatches = [...html.matchAll(namePattern)];
+        
+        for (const match of nameMatches) {
+          const name = match[1].trim();
+          if (name && name.length > 3) {
+            venues.push({
+              name: name,
+              location: { 
+                city: location.split(',')[0] || 'Unknown',
+                state: location.split(',')[1] || 'Unknown',
+                full: location
+              },
+              rating: 4.5,
+              reviewCount: 0,
+              url: `https://www.theknot.com/marketplace/venue/${name.toLowerCase().replace(/\s+/g, '-')}`,
+              imageUrl: '',
+              source: 'theknot',
+              pricing: { min: 1000, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
+              description: `Beautiful venue: ${name}`,
+              capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
+              venueType: 'Venue',
+              amenities: ['Wedding Reception', 'Ceremony'],
+              specialties: ['Wedding Reception', 'Ceremony']
+            });
+          }
+        }
       }
-    ];
-    
-    return mockVenues;
-  }
-
-  private getMockVenues(location: string): Venue[] {
-    console.log(`🎭 Returning mock venues for ${location}`);
-    
-    // Generate more realistic mock data based on location
-    const mockVenues = [
-      {
-        name: `The Grand Ballroom ${timestamp}`,
-        location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-        rating: 4.8,
-        reviewCount: 127,
-        url: 'https://example.com/venue1',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 2500, max: 5000, currency: 'USD', description: '$$$ – Moderate' },
-        description: 'Elegant ballroom venue perfect for weddings and special events',
-        capacity: { min: 100, max: 300, description: 'Up to 300 Guests' },
-        venueType: 'Ballroom',
-        amenities: ['Wedding Reception', 'Ceremony', 'Corporate Events', 'Catering Available'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Corporate Events']
-      },
-      {
-        name: `Garden Pavilion ${timestamp}`, 
-        location: { city: 'St. Paul', state: 'MN', full: 'St. Paul, MN' },
-        rating: 4.6,
-        reviewCount: 89,
-        url: 'https://example.com/venue2',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 1800, max: 3500, currency: 'USD', description: '$$ – Affordable' },
-        description: 'Beautiful outdoor garden venue with covered pavilion',
-        capacity: { min: 50, max: 200, description: 'Up to 200 Guests' },
-        venueType: 'Garden Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Outdoor Space', 'Garden Setting'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Outdoor Events']
-      },
-      {
-        name: `Historic Manor House ${timestamp}`,
-        location: { city: 'Minneapolis', state: 'MN', full: 'Minneapolis, MN' },
-        rating: 4.9,
-        reviewCount: 156,
-        url: 'https://example.com/venue3',
-        imageUrl: '',
-        source: 'mock',
-        pricing: { min: 3000, max: 6000, currency: 'USD', description: '$$$ – Moderate' },
-        description: 'Charming historic manor with elegant indoor and outdoor spaces',
-        capacity: { min: 75, max: 250, description: 'Up to 250 Guests' },
-        venueType: 'Historic Venue',
-        amenities: ['Wedding Reception', 'Ceremony', 'Historic Setting', 'Indoor/Outdoor'],
-        specialties: ['Wedding Reception', 'Ceremony', 'Historic Venues']
-      }
-    ];
-    
-    return mockVenues;
+      
+      console.log(`✅ Parsed ${venues.length} venues from HTML`);
+      return venues;
+      
+    } catch (error) {
+      console.error('❌ Error parsing HTML:', error);
+      throw new Error(`Failed to parse venues from HTML: ${error}`);
+    }
   }
 
   async close() {
     if (this.browser) {
       await this.browser.close();
-      console.log('🔒 Browser closed');
     }
   }
 }
