@@ -8,14 +8,41 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Client-side Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+// Client-side Supabase client (singleton pattern to prevent multiple instances)
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
+export const supabase = (() => {
+  if (!supabaseInstance) {
+    // Check if we're in the browser
+    if (typeof window !== 'undefined') {
+      // Check if there's already a Supabase client in the global scope
+      if ((window as any).__supabase_client) {
+        return (window as any).__supabase_client;
+      }
+      
+      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+        },
+      });
+      
+      // Store in global scope to prevent multiple instances
+      (window as any).__supabase_client = supabaseInstance;
+    } else {
+      // Server-side: create new instance
+      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+        },
+      });
+    }
+  }
+  return supabaseInstance;
+})();
 
 // Server-side Supabase client
 export const createServerClient = () => {
