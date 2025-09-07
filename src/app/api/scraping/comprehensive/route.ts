@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       process.env.STATE_START_INDEX = startIndex.toString();
       
       // Run comprehensive scraping
-      const venues = await scraper.scrapeAllVenues(3); // Limit to 3 pages per state
+      const venues = await scraper.scrapeAllVenues(); // Comprehensive scraping
       
       console.log(`✅ Scraped ${venues.length} venues from batch`);
       

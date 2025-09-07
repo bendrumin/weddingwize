@@ -159,8 +159,7 @@ export async function POST(request: NextRequest) {
       try {
         scraper = new VendorScraper();
         await scraper.initialize();
-        const pagesToScrape = maxPages || 10;
-        const scrapedVenues = await scraper.scrapeAllVenues(pagesToScrape);
+        const scrapedVenues = await scraper.scrapeAllVenues();
         allVenues = scrapedVenues.filter(venue => venue !== null) as Venue[];
         console.log(`✅ Master scraper completed successfully - found ${allVenues.length} total venues`);
         
@@ -176,7 +175,7 @@ export async function POST(request: NextRequest) {
         try {
           const fetchScraper = new VendorScraper();
           // Don't initialize Puppeteer, let it use fetch-based approach
-          const fetchVenues = await fetchScraper.scrapeAllVenues(maxPages || 10);
+          const fetchVenues = await fetchScraper.scrapeAllVenues();
           allVenues = fetchVenues.filter(venue => venue !== null) as Venue[];
           console.log(`✅ Fetch-based master scraper completed successfully - found ${allVenues.length} total venues`);
         } catch (fetchError: unknown) {

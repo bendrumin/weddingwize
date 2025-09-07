@@ -93,9 +93,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
       
-      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
+      const result = await Promise.race([profilePromise, timeoutPromise]) as { data: unknown; error: unknown };
+      const { data, error } = result;
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (error && (error as { code?: string }).code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error fetching profile:', error);
         // Set a default profile if fetch fails
         setProfile({
@@ -127,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } as WeddingProfile);
       } else if (data) {
         console.log('Profile found:', data);
-        setProfile(data);
+        setProfile(data as WeddingProfile);
       } else {
         // Profile doesn't exist, create a default one
         console.log('Creating default profile for user');

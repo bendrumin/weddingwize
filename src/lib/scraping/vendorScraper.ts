@@ -565,10 +565,10 @@ export class VendorScraper {
     }
   }
 
-  async scrapeAllVenues(maxPages: number = 50) {
+  async scrapeAllVenues() {
     if (!this.page) {
       console.log('⚠️ Puppeteer not available, trying alternative scraping method');
-      return this.scrapeAllVenuesWithFetch(maxPages);
+      return this.scrapeAllVenuesWithFetch();
     }
 
     console.log(`🔍 Starting comprehensive scrape of venues from all 50 states...`);
@@ -908,7 +908,7 @@ export class VendorScraper {
       .replace(/[^a-z0-9-]/g, '');
   }
 
-  async scrapeAllVenuesWithFetch(_maxPages: number = 50): Promise<Venue[]> {
+  async scrapeAllVenuesWithFetch(): Promise<Venue[]> {
     console.log(`🌐 Using fetch-based master scraping...`);
     
     try {
@@ -935,7 +935,7 @@ export class VendorScraper {
       console.log(`✅ Fetched ${html.length} characters of HTML`);
       
       // Parse HTML to extract venue data
-      const venues = this.parseAllVenuesFromHTML(html);
+      const venues = this.parseAllVenuesFromHTML();
       console.log(`🎯 Extracted ${venues.length} venues from HTML`);
       
       return venues;
@@ -947,7 +947,7 @@ export class VendorScraper {
     }
   }
 
-  async scrapeWithFetch(location: string, _maxPages: number = 50): Promise<Venue[]> {
+  async scrapeWithFetch(location: string): Promise<Venue[]> {
     console.log(`🌐 Using fetch-based scraping for ${location}...`);
     
     try {
@@ -988,7 +988,7 @@ export class VendorScraper {
     }
   }
 
-  private parseAllVenuesFromHTML(_html: string): Venue[] {
+  private parseAllVenuesFromHTML(): Venue[] {
     console.log('🔍 Parsing all venues from HTML...');
     
     // This would parse the HTML to extract venues from all locations

@@ -16,7 +16,7 @@ export default function DashboardPage() {
       console.log('Dashboard: No user, redirecting to signin');
       router.push('/auth/signin');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, profile?.id]);
 
   const handleSignOut = async () => {
     await signOut();

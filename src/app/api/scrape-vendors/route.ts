@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { location, category, maxPages = 3 } = await request.json();
+    const { location, category, maxPages = 3 } = await request.json(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
     if (!location || !category) {
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     
     try {
       if (category === 'venue') {
-        vendors = await scraper.scrapeAllVenues(maxPages);
+        vendors = await scraper.scrapeAllVenues();
       } else {
         throw new Error(`Unsupported category: ${category}. Only 'venue' is currently supported.`);
       }
